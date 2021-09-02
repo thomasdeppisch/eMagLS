@@ -47,8 +47,8 @@ switch params.radialFilter
         % nothing to do
         radFilts = ones(nfft/2+1, params.order+1);
 
-    case 'regul'
-        % thikonov regularization, 
+    case 'tikhonov'
+        % tikhonov regularization, 
         % e.g. used in Herzog, Habets, Eigenbeam-ESPRIT for DOA-Vector estimation
         if ~isfield(params,'regulConst')
             params.regulConst = 1e-2;
