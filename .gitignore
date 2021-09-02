@@ -15,15 +15,12 @@
 *.dpth
 *.md5
 *.auxlock
-*.mat
-*.wav
 *.pages
 *.sofa
 *.reapeaks
 *.asv
 *.pdf
 *.png
-matlab/em32IRs/*
 *.eps
 *.bib
 *.sty
