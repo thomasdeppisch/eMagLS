@@ -1,5 +1,6 @@
 % This script demonstrates how the different eMagLS renderers can be used
-% to render a SMA recording binaurally.
+% to render a SMA recording binaurally. It also provides the opportunity to
+% listen and compare different renderers.
 %
 % For more information about the renderer, please refer to 
 % T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
