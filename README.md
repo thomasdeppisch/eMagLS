@@ -9,10 +9,10 @@ For more information and if you want to reference the code please refer to
    of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
    ```
    
-The file `testEMagLS.m` contains an example on how to obtain the filters and apply them to a SMA recording. It also provides the opportunity to listen and compare the different renderers.
+The file `testEMagLS.m` contains an example on how to obtain the filters and apply them to an SMA recording. It also provides the opportunity to listen and compare the different renderers.
 
 ## Related Work
-This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses an publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes.
+This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes.
 
 ## Acknowledgment
 We thank Facebook Reality Labs Research for funding this project.
