@@ -7,7 +7,7 @@ clear all
 close all
 
 addpath(genpath('dependencies/'))
-[smaRecording, ~] = audioread('resources/EM32ch_hall_social1_short.wav');
+[smaRecording, ~] = audioread('resources/Acappella_Eigenmike_Raw_32ch_short.wav');
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
 shOrder = 4;
@@ -42,7 +42,7 @@ params.fs = fs;
 params.irLen = filterLen;
 params.oversamplingFactor = 1;
 params.radialFilter = 'tikhonov';
-params.regulConst = 1e-4;
+params.regulConst = 1e-2;
 params.smaRadius = micRadius;
 params.smaDesignAziZenRad = [micGridAziRad, micGridZenRad];
 params.waveModel = 'planeWave';
@@ -64,6 +64,9 @@ eMagLsBin = binauralDecode(shRecording, fs, wEMlsL, wEMlsR, fs);
 eMagLs2Bin = binauralDecode(smaRecording, fs, wEMls2L, wEMls2R, fs);
 
 %% listen to binaural renderings
+% especially concentrate on the very high frequencies to spot differences
+% between MagLS and eMagLS (good headphones needed)
+
 % LS
 sound(lsBin./max(abs(lsBin(:))) * 0.5, fs);
 pause(8)
