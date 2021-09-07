@@ -18,4 +18,4 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 We thank Facebook Reality Labs Research for funding this project.
 
 ## License
-This software is licensed under a Non-Commercial Software License (see LICENSE for full details).
+This software is licensed under a Non-Commercial Software License (see [LICENSE](https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE) for full details).
