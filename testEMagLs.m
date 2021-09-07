@@ -1,6 +1,13 @@
 % This script demonstrates how the different eMagLS renderers can be used
 % to render a SMA recording binaurally.
+%
+% For more information about the renderer, please refer to 
+% T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
+% of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
 % 
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
 % Thomas Deppisch, 2021
 
 clear all

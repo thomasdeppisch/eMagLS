@@ -1,9 +1,10 @@
 function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst)
 % [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst)
 %
-% calculates eMagLS2 binaural decoding filters
-% see Deppisch, Helmholz, Ahrens,
-% "End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals"
+% This function returns eMagLS2 binaural decoding filters.
+% For more information about the renderer, please refer to 
+% T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
+% of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -20,6 +21,9 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
+%
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 

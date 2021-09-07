@@ -14,6 +14,9 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 % order                  .. SH output order
 % fs                     .. sampling frequency
 %
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
 % Thomas Deppisch, 2021
 
 shDefinition = 'real'; % real or complex

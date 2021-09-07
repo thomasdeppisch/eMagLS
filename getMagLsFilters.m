@@ -19,6 +19,9 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
 %
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
 % Thomas Deppisch, 2021
 
 shDefinition = 'real'; % real or complex
