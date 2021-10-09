@@ -6,7 +6,7 @@ For more information and if you want to reference the code please refer to
    
    ```
    T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
-   of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
+   of Spherical Microphone Array Signals," International Conference on Immersive and 3D Audio (I3DA), 2021.
    ```
    
 The file `testEMagLS.m` contains an example on how to obtain the filters and apply them to an SMA recording. It also provides the opportunity to listen and compare the different renderers.
