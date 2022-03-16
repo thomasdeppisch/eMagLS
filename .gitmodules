@@ -1,6 +1,3 @@
 [submodule "dependencies/Spherical-Harmonic-Transform"]
 	path = dependencies/Spherical-Harmonic-Transform
 	url = git@github.com:polarch/Spherical-Harmonic-Transform.git
-[submodule "dependencies/Array-Response-Simulator"]
-	path = dependencies/Array-Response-Simulator
-	url = git@github.com:polarch/Array-Response-Simulator.git
