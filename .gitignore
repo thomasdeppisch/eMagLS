@@ -25,3 +25,7 @@
 *.bib
 *.sty
 *.bst
+*.wav
+*.mat
+*.zip
+/.idea/
