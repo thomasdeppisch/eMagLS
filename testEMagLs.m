@@ -21,13 +21,28 @@ addpath(genpath('dependencies/'))
 shOrder = 4;
 filterLen = 512;
 
+[hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
+    'https://zenodo.org/record/3928297/files/HRIR_L2702.mat?download=1');
+
 % define SMA design (em32)
 micRadius = 0.042;
 micGridAziRad = pi/180 * [0;32;0;328;0;45;69;45;0;315;291;315;91;90;90;89;180;212;180;148;180;225;249;225;180;135;111;135;269;270;270;271];
 micGridZenRad = pi/180 * [69;90;111;90;32;55;90;125;148;125;90;55;21;58;121;159;69;90;111;90;32;55;90;125;148;125;90;55;21;58;122;159];
 
-% load HRIR set (see https://zenodo.org/record/3928297)
-load HRIR_L2702.mat
+%% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
+% download HRIR set (skipped automatically if it already exists)
+[~, ~] = mkdir(fileparts(hrirFile)); % ignore warning if directory already exists
+fprintf('Downloading HRIR dataset ... ');
+if isfile(hrirFile)
+    fprintf('already exists ... skipped.\n');
+else
+    fprintf('from %s ... ', hrirUrl);
+    websave(hrirFile, hrirUrl);
+    fprintf('done.\n');
+end
+
+% load HRIR set
+load(hrirFile);
 hL = double(HRIR_L2702.irChOne);
 hR = double(HRIR_L2702.irChTwo);
 hrirGridAziRad = HRIR_L2702.azimuth';
