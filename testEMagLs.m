@@ -14,15 +14,17 @@
 clear all
 close all
 
-addpath(genpath('dependencies/'))
-[smaRecording, ~] = audioread('resources/Acappella_Eigenmike_Raw_32ch_short.wav');
+addpath(genpath('dependencies/'));
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
 shOrder = 4;
 filterLen = 512;
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
-    'https://zenodo.org/record/3928297/files/HRIR_L2702.mat?download=1');
+    'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
+
+[smaRecordingFile, smaRecordingUrl] = deal('resources/Acappella_Eigenmike_Raw_32ch.wav', ...
+    'https://zenodo.org/record/3477602/files/09%203D-MARCo%20Samples_Acappella.zip');
 
 % define SMA design (em32)
 micRadius = 0.042;
@@ -30,23 +32,19 @@ micGridAziRad = pi/180 * [0;32;0;328;0;45;69;45;0;315;291;315;91;90;90;89;180;21
 micGridZenRad = pi/180 * [69;90;111;90;32;55;90;125;148;125;90;55;21;58;121;159;69;90;111;90;32;55;90;125;148;125;90;55;21;58;122;159];
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
-% download HRIR set (skipped automatically if it already exists)
-[~, ~] = mkdir(fileparts(hrirFile)); % ignore warning if directory already exists
 fprintf('Downloading HRIR dataset ... ');
 if isfile(hrirFile)
     fprintf('already exists ... skipped.\n');
 else
-    fprintf('from %s ... ', hrirUrl);
-    websave(hrirFile, hrirUrl);
-    fprintf('done.\n');
+    downloadAndExtractFile(hrirFile, hrirUrl);
 end
 
 % load HRIR set
 load(hrirFile);
 hL = double(HRIR_L2702.irChOne);
 hR = double(HRIR_L2702.irChTwo);
-hrirGridAziRad = HRIR_L2702.azimuth';
-hrirGridZenRad = HRIR_L2702.elevation'; % the elevation angles actually contain zenith data between 0..pi
+hrirGridAziRad = double(HRIR_L2702.azimuth.');
+hrirGridZenRad = double(HRIR_L2702.elevation.'); % the elevation angles actually contain zenith data between 0..pi
 fs = double(HRIR_L2702.fs);
 
 % retrieve rendering filters
@@ -55,7 +53,18 @@ fs = double(HRIR_L2702.fs);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, false);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, filterLen, false);
 
-%% sh transform and radial filter (for LS and conventional MagLS)
+%% SH transform and radial filter (for LS and conventional MagLS)
+fprintf('Downloading SMA recording ... ');
+if isfile(smaRecordingFile)
+    fprintf('already exists ... skipped.\n');
+else
+    downloadAndExtractFile(smaRecordingFile, smaRecordingUrl);
+end
+
+% load SMA recording
+[smaRecording, smaFs] = audioread(smaRecordingFile);
+if smaFs ~= fs; error('Mismatch in sampling frequencies.'); end
+
 E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'real');
 shRecording = smaRecording * pinv(E)';
 
