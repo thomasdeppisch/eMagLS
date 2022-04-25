@@ -110,7 +110,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
     
     % include actual microphone processing to simulate aliasing
     n = (0:params.simulationOrder);
-    YMics = getSH(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';    
+    YMics = getSH(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
     YMicsLow = YMics(1:(params.order+1)^2, :);
 
     switch params.waveModel
@@ -158,4 +158,4 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if params.returnRawMicSigs
         smairMat = pMics;
     end
-    
+end

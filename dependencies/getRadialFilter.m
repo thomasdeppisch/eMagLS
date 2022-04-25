@@ -41,7 +41,6 @@ switch params.waveModel
         error('unkown waveModel parameter');
 end
 
-    
 switch params.radialFilter
     case 'none'
         % nothing to do
@@ -68,4 +67,6 @@ switch params.radialFilter
     otherwise
         error('unkown radialFilter parameter');
         
+end
+
 end

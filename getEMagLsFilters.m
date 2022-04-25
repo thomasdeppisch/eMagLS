@@ -165,3 +165,5 @@ fade_win = [hannin(1:end/2); ones(len-(n_fadein+n_fadeout),1); hannout(end/2+1:e
 
 wMlsL = wMlsL .* fade_win;
 wMlsR = wMlsR .* fade_win;
+
+end

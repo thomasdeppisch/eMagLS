@@ -19,4 +19,4 @@ sigFiltered = fftfilt(sh_repToOrder(irRadFilter.').', inSig);
 % remove filter delay
 sigFiltered = sigFiltered(params.nfft/2+1:end,:);
 
-    
+end

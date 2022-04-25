@@ -1,5 +1,5 @@
 function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order)
-% [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, fs)
+% [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order)
 %
 % calculates least-squares decoding filters
 % see Schoerkhuber, Zaunschirm, Hoeldrich,
@@ -12,7 +12,6 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 % hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)
 % order                  .. SH output order
-% fs                     .. sampling frequency
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
@@ -27,3 +26,4 @@ pinvY = pinv(Y);
 wLsL = hL * pinvY';
 wLsR = hR * pinvY';
 
+end
