@@ -1,5 +1,7 @@
-function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, fs, len, applyDiffusenessConst)
-% [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, fs, len, applyDiffusenessConst)
+function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+    order, fs, len, applyDiffusenessConst, shDefinition)
+% [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+%     order, fs, len, applyDiffusenessConst, shDefinition)
 %
 % calculates magLS binaural decoding filters
 % see Schoerkhuber, Zaunschirm, Hoeldrich,
@@ -18,13 +20,14 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
+% shDefinition           .. {'real', 'complex'}, SH basis type, default: 'real'
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'real'; % real or complex
+if nargin < 9; shDefinition = 'real'; end
 
 if (len < size(hL,1))
     error('len too short')

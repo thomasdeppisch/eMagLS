@@ -1,5 +1,7 @@
-function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst)
-% [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst)
+function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+    micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst, shDefinition)
+% [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+%     micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst, shDefinition)
 %
 % This function returns eMagLS2 binaural decoding filters.
 % For more information about the renderer, please refer to 
@@ -21,13 +23,14 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
+% shDefinition           .. {'real', 'complex'}, SH basis type, default: 'real'
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'real'; % real or complex
+if nargin < 11; shDefinition = 'real'; end
 
 if (len < size(hL,1))
     error('len too short')

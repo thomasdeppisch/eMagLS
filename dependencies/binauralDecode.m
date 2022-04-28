@@ -18,9 +18,10 @@ function binauralOut = binauralDecode(in, inFs, decodingFilterLeft, decodingFilt
 
     %% rotate horizontally?
     if (nargin > 8 && ~isempty(horRotAngleRad) && horRotAngleRad ~= 0)
+        % TODO: This function requires 
+        %       https://github.com/polarch/Higher-Order-Ambisonics.git
         in = rotateHOA_N3D(in, horRotAngleRad*180/pi, 0, 0);
     end
-        
     
     %% ambi binaural decoding
     numSamplesIn = size(in, 1);

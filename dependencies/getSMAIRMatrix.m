@@ -1,30 +1,33 @@
 function [smairMat, params] = getSMAIRMatrix(params)
-    % returns the SMAIR transform matrices, i.e. SMA processing (plane-wave
-    % radiation, scattering, mic encoding, radial filtering) but without
-    % any sources
-    %
-    % smairMat .. numShsSimulation x numShsOut x numFreqs
-    %          .. or (if returnRawMicSigs) numShsSimulation x numMics x numFreqs
-    %
-    % some params are limited to the following options:
-    % arrayType: {'rigid', 'open'}
-    % radialFilter: {'none', 'full', 'regul', 'softLimit', 'em32-zStyle', 'em32-zStyle-ffEq'}
-    % waveModel: {'planeWave', 'pointSource'}
-    % simulateAliasing: {true, false}
-    % zStyleMaxRe: {0, 1}
-    % replaceScatteringByRadFilt = {true, false} -> use radial filter as
-    % regularized scattering effect to limit gain in equalization filter
-    % returnRawDiaphSigs .. only return mic signals without SH transform at
-    %                       the output
-    % 
-    % further params:
-    % smaDesignAziZenRad, order, simulationOrder, fs, smaRadius,
-    % sourceDist, noiseGainDb, oversamplingFactor, irLen
-    %
-    % most parameters have default options! (default is a plane-wave em32
-    % simulation)
-    %
-    % Thomas Deppisch, 2021
+% [smairMat, params] = getSMAIRMatrix(params)
+% 
+% calculates SMAIR transform matrices, i.e. SMA processing (plane-wave radiation,
+% scattering, mic encoding, radial filtering) but without any sources
+%
+% smairMat      .. numShsSimulation x numShsOut x numFreqs
+%               .. or (if returnRawMicSigs) numShsSimulation x numMics x numFreqs
+% params        .. updated parameters
+%
+% Some parameters are limited to the following options:
+% arrayType                     .. {'rigid', 'open'}
+% radialFilter                  .. {'none', 'full', 'regul', 'softLimit', 'em32-zStyle', 'em32-zStyle-ffEq'}
+% waveModel                     .. {'planeWave', 'pointSource'}
+% simulateAliasing              .. {true, false}
+% zStyleMaxRe                   .. {0, 1}
+% replaceScatteringByRadFilt    .. {true, false} -> use radial filter as regularized scattering
+%                                  effect to limit gain in equalization filter
+% returnRawDiaphSigs            .. only return mic signals without SH transform at the output
+% 
+% Further parameters:
+% smaDesignAziZenRad, order, simulationOrder, fs, smaRadius, sourceDist,
+% noiseGainDb, oversamplingFactor, irLen, shDefinition
+%
+% Most parameters have default options! (default is a plane-wave em32 simulation)
+%
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
+% Thomas Deppisch, 2021
     
     % parse params
     if (nargin < 1 || ~isfield(params,'smaDesignAziZenRad'))
