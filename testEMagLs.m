@@ -32,10 +32,12 @@ micRadius     = 0.042; % in m
 micGridAziRad = deg2rad([0;32;0;328;0;45;69;45;0;315;291;315;91;90;90;89;180;212;180;148;180;225;249;225;180;135;111;135;269;270;270;271]);
 micGridZenRad = deg2rad([69;90;111;90;32;55;90;125;148;125;90;55;21;58;121;159;69;90;111;90;32;55;90;125;148;125;90;55;21;58;122;159]);
 
-global DO_OVERRIDE_REFERENCE DO_PLAYBACK_RENDERING
+global DO_VERIFY_REFERENCE DO_OVERRIDE_REFERENCE DO_PLAYBACK_RENDERING
+DO_VERIFY_REFERENCE   = true;
 DO_OVERRIDE_REFERENCE = false;
 DO_PLAYBACK_RENDERING = true;
 
+% DO_VERIFY_REFERENCE   = false;
 % DO_OVERRIDE_REFERENCE = true;
 % DO_PLAY_RENDERING     = false;
 
@@ -68,7 +70,7 @@ end
 
 fprintf('Loading file "%s" ... ', smaRecordingFile);
 [smaRecording, smaFs] = audioread(smaRecordingFile);
-if smaFs ~= fs; error('Mismatch in sampling frequencies.'); end
+assert(smaFs == fs, 'Mismatch in sampling frequencies.');
 if size(smaRecording, 1) / fs > smaRecordingLength
     fprintf('truncating length to %.1f s ... ', smaRecordingLength);
     smaRecording = smaRecording(1:fs * smaRecordingLength, :); % truncate
@@ -96,14 +98,52 @@ fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLe
     micRadius, micGridAziRad, micGridZenRad, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n\n');
 
-%% store reference filters
+%% verify rendering filters against provided reference
 [hrirPath, refFiles, ~] = fileparts(hrirFile);
 refFiles = fullfile(hrirPath, sprintf('%s_%dsamples_%dchannels_sh%d_%%s.mat', ...
     refFiles, filterLen, size(micGridAziRad, 1), shOrder));
 clear hrirPath;
 
-if DO_OVERRIDE_REFERENCE
+if DO_VERIFY_REFERENCE
+    % TODO: This verification could also check the match of other parameters
+    % TODO: It might be good to introduce a small error tolerance here
+
     refFile = sprintf(refFiles, 'LS');
+    fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+    ref = load(refFile);
+    assertAll(wLsL == ref.wLsL);
+    assertAll(wLsR == ref.wLsR);
+    clear refFile ref;
+    fprintf('done.\n');
+
+    refFile = sprintf(refFiles, 'MagLS');
+    fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+    ref = load(refFile);
+    assertAll(wMlsL == ref.wMlsL);
+    assertAll(wMlsR == ref.wMlsR);
+    clear refFile ref;
+    fprintf('done.\n');
+
+    refFile = sprintf(refFiles, 'eMagLS');
+    fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+    ref = load(refFile);
+    assertAll(wEMlsL == ref.wEMlsL);
+    assertAll(wEMlsR == ref.wEMlsR);
+    clear refFile ref;
+    fprintf('done.\n');
+
+    refFile = sprintf(refFiles, 'eMagLS2');
+    fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+    ref = load(refFile);
+    assertAll(wEMls2L == ref.wEMls2L);
+    assertAll(wEMls2R == ref.wEMls2R);
+    clear refFile ref;
+    fprintf('done.\n\n');
+end
+
+%% replace reference filters
+if DO_OVERRIDE_REFERENCE
+    refFile = sprintf(refFiles, 'LS'); %#ok<*UNRCH> 
     fprintf('Exporting LS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wLsL', 'wLsR', 'hrirGridAziRad', 'hrirGridZenRad', 'shOrder', '-v7');
     fprintf('done.\n');
@@ -207,3 +247,8 @@ end
 %%
 fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
     toc/3600, mod(toc,3600)/60, mod(toc,60));
+
+%% helper functions
+function assertAll(cond, varargin)
+    assert(all(cond, 'all'), varargin{:});
+end
