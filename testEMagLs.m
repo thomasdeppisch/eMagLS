@@ -89,6 +89,38 @@ fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLe
     micRadius, micGridAziRad, micGridZenRad, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n\n');
 
+%% store reference filters
+[hrirPath, refFiles, ~] = fileparts(hrirFile);
+refFiles = fullfile(hrirPath, sprintf('%s_%dsamples_%dchannels_sh%d_%%s.mat', ...
+    refFiles, filterLen, size(micGridAziRad, 1), shOrder));
+clear hrirPath;
+
+refFile = sprintf(refFiles, 'LS');
+fprintf('Exporting LS rendering filters to "%s" ... ', refFile);
+save(refFile, 'wLsL', 'wLsR', 'hrirGridAziRad', 'hrirGridZenRad', 'shOrder', '-v7');
+fprintf('done.\n');
+
+refFile = sprintf(refFiles, 'MagLS');
+fprintf('Exporting MagLS rendering filters to "%s" ... ', refFile);
+save(refFile, 'wMlsL', 'wMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
+    'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+fprintf('done.\n');
+
+refFile = sprintf(refFiles, 'eMagLS');
+fprintf('Exporting eMagLS rendering filters to "%s" ... ', refFile);
+save(refFile, 'wEMlsL', 'wEMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
+    'micRadius', 'micGridAziRad', 'micGridZenRad', ...
+    'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+fprintf('done.\n');
+
+refFile = sprintf(refFiles, 'eMagLS2');
+fprintf('Exporting eMagLS2 rendering filters to "%s" ... ', refFile);
+save(refFile, 'wEMls2L', 'wEMls2R', 'hrirGridAziRad', 'hrirGridZenRad', ...
+    'micRadius', 'micGridAziRad', 'micGridZenRad', ...
+    'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+fprintf('done.\n\n');
+clear refFile;
+
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
 E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'real');
