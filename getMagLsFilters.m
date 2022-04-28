@@ -29,17 +29,20 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 
 if nargin < 9; shDefinition = 'real'; end
 
+NFFT_MAX_LEN    = 2048; % maxium length of result in samples
+F_CUT           = 2000; % transition frequency in Hz
+REL_FADE_LEN    = 0.15; % relative length of result fading window
+
 if (len < size(hL,1))
     error('len too short')
 end
 
-nfft = max(2*len,2048);
+nfft = max(2*len,NFFT_MAX_LEN);
 Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
 pinvY = pinv(Y);
 
-f_cut = 2000; % transition frequency 
 f = linspace(0,fs/2,nfft/2+1);
-k_cut = round(f_cut/f(2) + 1);
+k_cut = round(F_CUT/f(2) + 1);
 
 % zero pad and remove delay (alternative to applying global phase delay later)
 grpDL = grpdelay(hL * pinvY(1,:)', 1, f, fs);
@@ -124,8 +127,8 @@ wMlsL = wMlsL(nfft/2-len/2+1:nfft/2+len/2,:);
 wMlsR = wMlsR(nfft/2-len/2+1:nfft/2+len/2,:);
 
 % fade
-n_fadein = round(0.15 * len);
-n_fadeout = round(0.15 * len);
+n_fadein = round(REL_FADE_LEN * len);
+n_fadeout = round(REL_FADE_LEN * len);
 hannin = hann(2*n_fadein);
 hannout = hann(2*n_fadeout);
 fade_win = [hannin(1:end/2); ones(len-(n_fadein+n_fadeout),1); hannout(end/2+1:end)];

@@ -83,10 +83,11 @@ function [smairMat, params] = getSMAIRMatrix(params)
         params.shDefinition = 'real';
     end
     
-    c = 343;
+    C = 343; % speed of sound in m/s
+
     nfft = params.oversamplingFactor*params.irLen;
     f = linspace(0,params.fs/2,nfft/2+1)';
-    k = 2*pi*f/c;
+    k = 2*pi*f/C;
     kr = k * params.smaRadius;
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
     krSource = k * params.sourceDist;
