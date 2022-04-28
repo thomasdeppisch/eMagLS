@@ -17,6 +17,7 @@ addpath(genpath('dependencies/'));
 
 %% configuration
 filterLen = 512;
+applyDiffusenessConst = false; % for MagLS, eMagLS and eMagLS2
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
@@ -69,23 +70,23 @@ clear smaFs smaRecordingLength;
 fprintf('done.\n\n');
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
-fprintf('Computing LS rendering filters ... with %d samples ... ', filterLen);
+fprintf('Computing LS rendering filters ... with %d samples ... ', size(hL, 1));
 [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder);
 fprintf('done.\n');
 
 fprintf('Computing MagLS rendering filters ... with %d samples ... ', filterLen);
 [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    shOrder, fs, filterLen, false);
+    shOrder, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, false);
+    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, fs, filterLen, false);
+    micRadius, micGridAziRad, micGridZenRad, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n\n');
 
 %% SH transform and radial filter (for LS and conventional MagLS)
