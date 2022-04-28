@@ -32,6 +32,13 @@ micRadius     = 0.042; % in m
 micGridAziRad = deg2rad([0;32;0;328;0;45;69;45;0;315;291;315;91;90;90;89;180;212;180;148;180;225;249;225;180;135;111;135;269;270;270;271]);
 micGridZenRad = deg2rad([69;90;111;90;32;55;90;125;148;125;90;55;21;58;121;159;69;90;111;90;32;55;90;125;148;125;90;55;21;58;122;159]);
 
+global DO_OVERRIDE_REFERENCE DO_PLAYBACK_RENDERING
+DO_OVERRIDE_REFERENCE = false;
+DO_PLAYBACK_RENDERING = true;
+
+% DO_OVERRIDE_REFERENCE = true;
+% DO_PLAY_RENDERING     = false;
+
 %% load data
 tic; % start measuring execution time
 
@@ -95,31 +102,33 @@ refFiles = fullfile(hrirPath, sprintf('%s_%dsamples_%dchannels_sh%d_%%s.mat', ..
     refFiles, filterLen, size(micGridAziRad, 1), shOrder));
 clear hrirPath;
 
-refFile = sprintf(refFiles, 'LS');
-fprintf('Exporting LS rendering filters to "%s" ... ', refFile);
-save(refFile, 'wLsL', 'wLsR', 'hrirGridAziRad', 'hrirGridZenRad', 'shOrder', '-v7');
-fprintf('done.\n');
-
-refFile = sprintf(refFiles, 'MagLS');
-fprintf('Exporting MagLS rendering filters to "%s" ... ', refFile);
-save(refFile, 'wMlsL', 'wMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
-    'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
-fprintf('done.\n');
-
-refFile = sprintf(refFiles, 'eMagLS');
-fprintf('Exporting eMagLS rendering filters to "%s" ... ', refFile);
-save(refFile, 'wEMlsL', 'wEMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
-    'micRadius', 'micGridAziRad', 'micGridZenRad', ...
-    'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
-fprintf('done.\n');
-
-refFile = sprintf(refFiles, 'eMagLS2');
-fprintf('Exporting eMagLS2 rendering filters to "%s" ... ', refFile);
-save(refFile, 'wEMls2L', 'wEMls2R', 'hrirGridAziRad', 'hrirGridZenRad', ...
-    'micRadius', 'micGridAziRad', 'micGridZenRad', ...
-    'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
-fprintf('done.\n\n');
-clear refFile;
+if DO_OVERRIDE_REFERENCE
+    refFile = sprintf(refFiles, 'LS');
+    fprintf('Exporting LS rendering filters to "%s" ... ', refFile);
+    save(refFile, 'wLsL', 'wLsR', 'hrirGridAziRad', 'hrirGridZenRad', 'shOrder', '-v7');
+    fprintf('done.\n');
+    
+    refFile = sprintf(refFiles, 'MagLS');
+    fprintf('Exporting MagLS rendering filters to "%s" ... ', refFile);
+    save(refFile, 'wMlsL', 'wMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
+        'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+    fprintf('done.\n');
+    
+    refFile = sprintf(refFiles, 'eMagLS');
+    fprintf('Exporting eMagLS rendering filters to "%s" ... ', refFile);
+    save(refFile, 'wEMlsL', 'wEMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
+        'micRadius', 'micGridAziRad', 'micGridZenRad', ...
+        'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+    fprintf('done.\n');
+    
+    refFile = sprintf(refFiles, 'eMagLS2');
+    fprintf('Exporting eMagLS2 rendering filters to "%s" ... ', refFile);
+    save(refFile, 'wEMls2L', 'wEMls2R', 'hrirGridAziRad', 'hrirGridZenRad', ...
+        'micRadius', 'micGridAziRad', 'micGridZenRad', ...
+        'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+    fprintf('done.\n\n');
+    clear refFile;
+end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
@@ -174,24 +183,26 @@ fprintf('done.\n\n');
 %% listen to binaural renderings
 % especially concentrate on the very high frequencies to spot differences
 % between MagLS and eMagLS (good headphones needed)
-fprintf('Playing back LS rendering ... ');
-playblocking(audioplayer(lsBin, fs));
-fprintf('done.\n');
-
-pause(0.5);
-fprintf('Playing back MagLS rendering ... ');
-playblocking(audioplayer(magLsBin, fs));
-fprintf('done.\n');
-
-pause(0.5);
-fprintf('Playing back eMagLS rendering ... ');
-playblocking(audioplayer(eMagLsBin, fs));
-fprintf('done.\n');
-
-pause(0.5);
-fprintf('Playing back eMagLS2 rendering ... ');
-playblocking(audioplayer(eMagLs2Bin, fs));
-fprintf('done.\n\n');
+if DO_PLAYBACK_RENDERING
+    fprintf('Playing back LS rendering ... ');
+    playblocking(audioplayer(lsBin, fs));
+    fprintf('done.\n');
+    
+    pause(0.5);
+    fprintf('Playing back MagLS rendering ... ');
+    playblocking(audioplayer(magLsBin, fs));
+    fprintf('done.\n');
+    
+    pause(0.5);
+    fprintf('Playing back eMagLS rendering ... ');
+    playblocking(audioplayer(eMagLsBin, fs));
+    fprintf('done.\n');
+    
+    pause(0.5);
+    fprintf('Playing back eMagLS2 rendering ... ');
+    playblocking(audioplayer(eMagLs2Bin, fs));
+    fprintf('done.\n\n');
+end
 
 %%
 fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
