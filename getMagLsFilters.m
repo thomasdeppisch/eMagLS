@@ -1,7 +1,7 @@
 function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    order, fs, len, applyDiffusenessConst, shDefinition)
+    order, fs, len, applyDiffusenessConst, shDefinition, shFunction)
 % [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     order, fs, len, applyDiffusenessConst, shDefinition)
+%     order, fs, len, applyDiffusenessConst, shDefinition, shFunction)
 %
 % calculates magLS binaural decoding filters
 % see Schoerkhuber, Zaunschirm, Hoeldrich,
@@ -20,14 +20,16 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
-% shDefinition           .. {'real', 'complex'}, SH basis type, default: 'real'
+% shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
+% shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 
-if nargin < 9; shDefinition = 'real'; end
+if nargin < 10; shFunction = @getSH; end
+if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN    = 2048; % maxium length of result in samples
 F_CUT           = 2000; % transition frequency in Hz
@@ -38,7 +40,8 @@ if (len < size(hL,1))
 end
 
 nfft = max(2*len,NFFT_MAX_LEN);
-Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
+fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
+Y = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition);
 pinvY = pinv(Y);
 
 f = linspace(0,fs/2,nfft/2+1);

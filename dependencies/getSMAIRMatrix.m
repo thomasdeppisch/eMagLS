@@ -20,7 +20,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % 
 % Further parameters:
 % smaDesignAziZenRad, order, simulationOrder, fs, smaRadius, sourceDist,
-% noiseGainDb, oversamplingFactor, irLen, shDefinition
+% noiseGainDb, oversamplingFactor, irLen, shDefinition, shFunction
 %
 % Most parameters have default options! (default is a plane-wave em32 simulation)
 %
@@ -82,6 +82,9 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if (nargin < 1 || ~isfield(params,'shDefinition'))
         params.shDefinition = 'real';
     end
+    if (nargin < 1 || ~isfield(params,'shFunction'))
+        params.shFunction = @getSH;
+    end
     
     C = 343; % speed of sound in m/s
 
@@ -114,7 +117,8 @@ function [smairMat, params] = getSMAIRMatrix(params)
     
     % include actual microphone processing to simulate aliasing
     n = (0:params.simulationOrder);
-    YMics = getSH(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
+%     fprintf('with @%s("%s") ... ', func2str(params.shFunction), params.shDefinition);
+    YMics = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
     YMicsLow = YMics(1:(params.order+1)^2, :);
 
     switch params.waveModel

@@ -93,6 +93,13 @@ fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen
     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n');
 
+% % An alternative version which uses a different SH basis convention and implementation
+% fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen);
+% [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+%     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst, ...
+%     'complex', @getSH_SFS);
+% fprintf('done.\n');
+
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, micGridZenRad, fs, filterLen, applyDiffusenessConst);
@@ -249,6 +256,33 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
     toc/3600, mod(toc,3600)/60, mod(toc,60));
 
 %% helper functions
+% function Y = getSH_SHT(order, gridAziZenRad, shDefinition)
+%     % This is identical to the default implementation being used in the toolbox.
+%     % 
+%     % from Spherical-Harmonic-Transform toolbox
+%     % $ git clone https://github.com/polarch/Spherical-Harmonic-Transform.git
+%     Y = getSH(order, gridAziZenRad, shDefinition);
+% end
+
+% function Y = getSH_AKT(order, gridAziZenRad, shDefinition)
+%     % from AKtools toolbox (run AKtoolsStart.m)
+%     % $ svn checkout https://svn.ak.tu-berlin.de/svn/AKtools --username aktools --password ak
+%     Y = AKsh(order, [], rad2deg(gridAziZenRad(:, 1)), ...
+%         rad2deg(gridAziZenRad(:, 2)), shDefinition);
+% end
+
+% function Y = getSH_SFS(order, gridAziZenRad, shDefinition)
+%     % from soundfieldsynthesis "Common" scripts
+%     % $ git clone https://github.com/JensAhrens/soundfieldsynthesis.git
+%     Y = zeros(size(gridAziZenRad, 1), (order+1)^2);
+%     for n = 0 : order
+%         for m = -n : n
+%             Y(:, n^2+n+m+1) = sphharm(n, m, ...
+%                 gridAziZenRad(:, 2), gridAziZenRad(:, 1), shDefinition);
+%         end
+%     end
+% end
+
 function assertAll(cond, varargin)
     assert(all(cond, 'all'), varargin{:});
 end

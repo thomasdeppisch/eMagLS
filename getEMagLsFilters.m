@@ -1,7 +1,9 @@
 function [wMlsL, wMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, shDefinition)
+    micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
+    shDefinition, shFunction)
 % [wMlsL, wMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, shDefinition)
+%     micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
+%     shDefinition, shFunction)
 %
 % This function returns eMagLS binaural decoding filters.
 % For more information about the renderer, please refer to 
@@ -24,14 +26,16 @@ function [wMlsL, wMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRa
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
 %                           response time alignment and a diffuseness constraint"
-% shDefinition           .. {'real', 'complex'}, SH basis type, default: 'real'
+% shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
+% shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 
-if nargin < 12; shDefinition = 'real'; end
+if nargin < 13; shFunction = @getSH; end
+if nargin < 12 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_ORDER        = 32; % see `getSMAIRMatrix()`
@@ -48,7 +52,8 @@ end
 numHarmonics = (order+1)^2;
 numDirections = size(hL,2);
 nfft = max(2*len,NFFT_MAX_LEN);
-YHi = getSH(SIMULATION_ORDER, [hrirGridAziRad,hrirGridZenRad], shDefinition).';
+fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
+YHi = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition).';
 YLo = YHi(1:numHarmonics,:);
 pinvYLo = pinv(YLo');
 
@@ -80,6 +85,7 @@ params.smaDesignAziZenRad = [micGridAziRad, micGridZenRad];
 params.waveModel = SIMULATION_WAVE_MODEL;
 params.arrayType = SIMULATION_ARRAY_TYPE;
 params.shDefinition = shDefinition;
+params.shFunction = shFunction;
 smairMat = getSMAIRMatrix(params);
 
 W_LS_l = zeros(numPosFreqs, numHarmonics);

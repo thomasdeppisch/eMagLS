@@ -1,7 +1,7 @@
-function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    order, shDefinition)
-% [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     order, shDefinition)
+function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, ...
+    shDefinition, shFunction)
+% [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, ...
+%     shDefinition, shFunction)
 %
 % calculates least-squares decoding filters
 % see Schoerkhuber, Zaunschirm, Hoeldrich,
@@ -14,16 +14,19 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 % hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)
 % order                  .. SH output order
-% shDefinition           .. {'real', 'complex'}, SH basis type, default: 'real'
+% shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
+% shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
 
-if nargin < 6; shDefinition = 'real'; end
+if nargin < 7; shFunction = @getSH; end
+if nargin < 6 || isempty(shDefinition); shDefinition = 'real'; end
 
-Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
+fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
+Y = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition);
 pinvY = pinv(Y);
 
 wLsL = hL * pinvY';

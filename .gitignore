@@ -29,3 +29,7 @@
 *.mat
 *.zip
 /.idea/
+
+# optional submodules with alternative SH basis function implementations
+/dependencies/AKtools/
+/dependencies/soundfieldsynthesis/
