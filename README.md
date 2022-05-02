@@ -16,6 +16,26 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 ## Related Work
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
+## Changelog
+### 2022-05-02
+- Update functions to provide SH basis implementation function as an optional parameter (see `testEMagLs.m` for a usage example)
+- Update functions to provide utilized constants at the top
+- Update functions to provide SH basis type (according to basis implementation) as an optional parameter
+- Update `testEMagLs.m` to add verification of rendering filters against the provided reference
+- Update `testEMagLs.m` to add global configuration variables
+- Update `testEMagLs.m` to export reference results for LS, MagLS, eMagLS and eMagLS2 filters
+(also add the respective reference results)
+- Update `testEMagLs.m` to provide configuration of the MagLS diffuseness constraint
+- Update `testEMagLs.m` to be more verbose (reintroduce length limitation of the rendered SMA recording)
+- Remove default SMA recording dataset (update `testEMagLs.m` to download data on demand)
+- Remove default HRIR dataset (update `testEMagLs.m`t to download data on demand)
+- Fix all function endings and formatting
+### 2022-03-16
+- Update `testEMagLs.m` to be verbose about audio playback of rendering results
+- Update `README.md` with information on initializing git submodules 
+### 2021-10-10
+- Initial code release
+
 ## Acknowledgment
 We thank Facebook Reality Labs Research for funding this project.
 
