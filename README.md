@@ -17,7 +17,8 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
-### 2022-05-02
+### 2022-05-03
+- Fix functions to use case-insensitive string comparisons for parameters
 - Update functions to provide SH basis implementation function as an optional parameter (see `testEMagLs.m` for a usage example)
 - Update functions to provide utilized constants at the top
 - Update functions to provide SH basis type (according to basis implementation) as an optional parameter

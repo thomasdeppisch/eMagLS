@@ -8,12 +8,12 @@ f = linspace(0,params.fs/2,nfft/2+1)';
 k = 2*pi*f/c;
 kr = k * params.smaRadius;
 
-if strcmp(params.waveModel, 'pointSource')
+if strcmpi(params.waveModel, 'pointSource')
     krSource = k * params.sourceDist; % in this case params.sourceDist needs to be set by the user
 end
 
 % set radial filtering for waveModel + arrayType combination
-switch params.arrayType
+switch lower(params.arrayType)
     case 'rigid'
         bn = @(N_,kr_) 1i ./ ((kr_.').^2 .* sph_besselh_diff(N_, kr_).');
 
@@ -25,23 +25,23 @@ switch params.arrayType
         bn = @(N_,kr_) (params.dirCoeff*sph_besselj(N_, kr_).' - 1i*(1-params.dirCoeff)*sph_besselj_diff(N_, kr_).');
 
     otherwise
-        error('unkown arrayType parameter');
+        error('Unkown arrayType parameter "%s".', params.arrayType);
 end
 
 n = (0:params.order);
-switch params.waveModel
-    case 'planeWave'
+switch lower(params.waveModel)
+    case 'planewave'
         bnAll = 4*pi*1i.^n .* bn(params.order, kr).';
 
-    case 'pointSource'
+    case 'pointsource'
         hnAll = sph_besselh(params.order, krSource);
         bnAll = 4*pi*(-1i) .* k .* hnAll .* bn(params.order, kr).';
 
     otherwise
-        error('unkown waveModel parameter');
+        error('Unkown waveModel parameter "%s".', params.waveModel);
 end
 
-switch params.radialFilter
+switch lower(params.radialFilter)
     case 'none'
         % nothing to do
         radFilts = ones(nfft/2+1, params.order+1);
@@ -55,7 +55,7 @@ switch params.radialFilter
         radFilts = (conj(bnAll(:,1:params.order+1)) ./ ...
                         (conj(bnAll(:,1:params.order+1)) .* bnAll(:,1:params.order+1) + params.regulConst));
 
-    case 'softLimit'
+    case 'softlimit'
         % Bernschuetz et al., Soft-Limiting der modalen Amplitudenverstärkung 
         gainLimLin = 10^(params.noiseGainDb / 20);
         radFilts = 2*gainLimLin/pi * abs(bnAll(:,1:params.order+1))./(bnAll(:,1:params.order+1)) ...
@@ -65,7 +65,7 @@ switch params.radialFilter
         radFilts = 1 ./ bnAll(:,1:params.order+1);
         
     otherwise
-        error('unkown radialFilter parameter');
+        error('Unkown radialFilter parameter "%s".', params.radialFilter);
         
 end
 

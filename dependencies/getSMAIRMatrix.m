@@ -100,7 +100,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
     numMics = size(params.smaDesignAziZenRad, 1);
 
     % set radial filtering for waveModel + arrayType combination
-    switch params.arrayType
+    switch lower(params.arrayType)
         case 'rigid'
             bn = @(N_,kr_) 1i ./ ((kr_.').^2 .* sph_besselh_diff(N_, kr_).');
 
@@ -112,7 +112,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
             bn = @(N_,kr_) (params.dirCoeff*sph_besselj(N_, kr_).' - 1i*(1-params.dirCoeff)*sph_besselj_diff(N_, kr_).');
 
         otherwise
-            disp('SMAIR: unkown arrayType parameter');
+            error('Unkown arrayType parameter "%s".', params.arrayType);
     end
     
     % include actual microphone processing to simulate aliasing
@@ -121,16 +121,16 @@ function [smairMat, params] = getSMAIRMatrix(params)
     YMics = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
     YMicsLow = YMics(1:(params.order+1)^2, :);
 
-    switch params.waveModel
-        case 'planeWave'
+    switch lower(params.waveModel)
+        case 'planewave'
             bnAll = 4*pi*1i.^n .* bn(params.simulationOrder, kr).';
 
-        case 'pointSource'
+        case 'pointsource'
             hnAll = sph_besselh(params.simulationOrder, krSource);
             bnAll = 4*pi*(-1i) .* k .* hnAll .* bn(params.simulationOrder, kr).';
 
         otherwise
-            disp('SMAIR: unkown waveModel parameter');
+            error('Unkown waveModel parameter "%s".', params.waveModel);
     end
 
     pMics = zeros(numMics, numShsSimulation, numFreqs);
@@ -149,7 +149,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
     end
 
     % apply radial filtering
-    if (~strcmp(params.radialFilter, 'none'))
+    if (~strcmpi(params.radialFilter, 'none'))
         radFilts = getRadialFilter(params);
 
         smairMat = zeros(numShsOut, numShsSimulation, numFreqs);
