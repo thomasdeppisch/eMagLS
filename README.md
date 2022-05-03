@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-03
+- Update `testEMagLs.m` to add used SH basis type in exported file names (update file names of respective reference results)
 - Update `testEMagLs.m` to export audio rendering results as an option
 - Fix functions to use case-insensitive string comparisons for parameters
 - Update functions to provide SH basis implementation function as an optional parameter (see `testEMagLs.m` for a usage example)
