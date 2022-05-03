@@ -18,14 +18,14 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-03
+- Update `testEMagLs.m` to export audio rendering results as an option
 - Fix functions to use case-insensitive string comparisons for parameters
 - Update functions to provide SH basis implementation function as an optional parameter (see `testEMagLs.m` for a usage example)
 - Update functions to provide utilized constants at the top
 - Update functions to provide SH basis type (according to basis implementation) as an optional parameter
 - Update `testEMagLs.m` to add verification of rendering filters against the provided reference
 - Update `testEMagLs.m` to add global configuration variables
-- Update `testEMagLs.m` to export reference results for LS, MagLS, eMagLS and eMagLS2 filters
-(also add the respective reference results)
+- Update `testEMagLs.m` to export reference results for LS, MagLS, eMagLS and eMagLS2 filters (also add the respective reference results)
 - Update `testEMagLs.m` to provide configuration of the MagLS diffuseness constraint
 - Update `testEMagLs.m` to be more verbose (reintroduce length limitation of the rendered SMA recording)
 - Remove default SMA recording dataset (update `testEMagLs.m` to download data on demand)

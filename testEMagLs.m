@@ -32,13 +32,15 @@ micRadius     = 0.042; % in m
 micGridAziRad = deg2rad([0;32;0;328;0;45;69;45;0;315;291;315;91;90;90;89;180;212;180;148;180;225;249;225;180;135;111;135;269;270;270;271]);
 micGridZenRad = deg2rad([69;90;111;90;32;55;90;125;148;125;90;55;21;58;121;159;69;90;111;90;32;55;90;125;148;125;90;55;21;58;122;159]);
 
-global DO_VERIFY_REFERENCE DO_OVERRIDE_REFERENCE DO_PLAYBACK_RENDERING
+global DO_VERIFY_REFERENCE DO_OVERRIDE_REFERENCE DO_EXPORT_RENDERING DO_PLAYBACK_RENDERING
 DO_VERIFY_REFERENCE   = true;
 DO_OVERRIDE_REFERENCE = false;
+DO_EXPORT_RENDERING   = true;
 DO_PLAYBACK_RENDERING = true;
 
 % DO_VERIFY_REFERENCE   = false;
 % DO_OVERRIDE_REFERENCE = true;
+% DO_EXPORT_RENDERING   = false;
 % DO_PLAY_RENDERING     = false;
 
 %% load data
@@ -107,8 +109,9 @@ fprintf('done.\n\n');
 
 %% verify rendering filters against provided reference
 [hrirPath, refFiles, ~] = fileparts(hrirFile);
-refFiles = fullfile(hrirPath, sprintf('%s_%dsamples_%dchannels_sh%d_%%s.mat', ...
-    refFiles, filterLen, size(micGridAziRad, 1), shOrder));
+refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%%s', ...
+    refFiles, filterLen, size(micGridAziRad, 1), shOrder);
+refFiles = fullfile(hrirPath, [refStr, '.mat']);
 clear hrirPath;
 
 if DO_VERIFY_REFERENCE
@@ -227,26 +230,54 @@ eMagLsBin = eMagLsBin ./ max(abs(eMagLsBin(:))) * 0.5;
 eMagLs2Bin = eMagLs2Bin ./ max(abs(eMagLs2Bin(:))) * 0.5;
 fprintf('done.\n\n');
 
+%% export binaural renderings
+[~, smaRecordingFile, ~] = fileparts(smaRecordingFile);
+if DO_EXPORT_RENDERING
+    audioFiles = sprintf('%s_%s.wav', smaRecordingFile, refStr);
+
+    audioFile = sprintf(audioFiles, 'LS');
+    fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
+    audiowrite(audioFile, lsBin, fs);
+    fprintf('done.\n');
+
+    audioFile = sprintf(audioFiles, 'MagLS');
+    fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
+    audiowrite(audioFile, magLsBin, fs);
+    fprintf('done.\n');
+
+    audioFile = sprintf(audioFiles, 'eMagLS');
+    fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
+    audiowrite(audioFile, eMagLsBin, fs);
+    fprintf('done.\n');
+
+    audioFile = sprintf(audioFiles, 'eMagLS2');
+    fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
+    audiowrite(audioFile, eMagLs2Bin, fs);
+    fprintf('done.\n\n');
+
+    clear audioFiles audioFile;
+end
+
 %% listen to binaural renderings
 % especially concentrate on the very high frequencies to spot differences
 % between MagLS and eMagLS (good headphones needed)
 if DO_PLAYBACK_RENDERING
-    fprintf('Playing back LS rendering ... ');
+    fprintf('Playing back LS binaural rendering ... ');
     playblocking(audioplayer(lsBin, fs));
     fprintf('done.\n');
     
     pause(0.5);
-    fprintf('Playing back MagLS rendering ... ');
+    fprintf('Playing back MagLS binaural rendering ... ');
     playblocking(audioplayer(magLsBin, fs));
     fprintf('done.\n');
     
     pause(0.5);
-    fprintf('Playing back eMagLS rendering ... ');
+    fprintf('Playing back eMagLS binaural rendering ... ');
     playblocking(audioplayer(eMagLsBin, fs));
     fprintf('done.\n');
     
     pause(0.5);
-    fprintf('Playing back eMagLS2 rendering ... ');
+    fprintf('Playing back eMagLS2 binaural rendering ... ');
     playblocking(audioplayer(eMagLs2Bin, fs));
     fprintf('done.\n\n');
 end
