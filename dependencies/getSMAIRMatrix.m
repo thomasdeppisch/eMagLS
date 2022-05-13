@@ -119,7 +119,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
     n = (0:params.simulationOrder);
 %     fprintf('with @%s("%s") ... ', func2str(params.shFunction), params.shDefinition);
     YMics = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
-    YMicsLow = YMics(1:(params.order+1)^2, :);
+    YMicsLow = YMics(1:numShsOut, :);
 
     switch lower(params.waveModel)
         case 'planewave'

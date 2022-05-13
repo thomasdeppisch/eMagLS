@@ -19,6 +19,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 ## Changelog
 ### 2022-05-13
 - Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to slightly improve computation time
+- Update functions to use `ifft()` without the forced symmetric parameter (fix to yield real or complex filters depending on the basis type)
 ### 2022-05-03
 - Update `testEMagLs.m` to add used SH basis type in exported file names (update file names of respective reference results)
 - Update `testEMagLs.m` to export audio rendering results as an option

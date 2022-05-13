@@ -45,32 +45,31 @@ F_CUT                   = 2000; % transition frequency in Hz
 SVD_REGUL_CONST         = 0.01;
 REL_FADE_LEN            = 0.15; % relative length of result fading window
 
-if (len < size(hL,1))
-    error('len too short')
-end
+assert(len >= size(hL, 1), 'len too short');
 
 numHarmonics = (order+1)^2;
-numDirections = size(hL,2);
-nfft = max(2*len,NFFT_MAX_LEN);
+numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 YHi = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition).';
-YLo = YHi(1:numHarmonics,:);
+YLo = YHi(1:numHarmonics, :);
 pinvYLo = pinv(YLo');
 
-f = linspace(0,fs/2,nfft/2+1);
-k_cut = round(F_CUT/f(2) + 1);
+nfft = max(2*len, NFFT_MAX_LEN);
+f = linspace(0, fs/2, nfft/2+1).';
+k_cut = ceil(F_CUT/f(2));
+numPosFreqs = length(f);
 
 % zero pad and remove group delay (alternative to applying global phase delay later)
-grpDL = grpdelay((pinvYLo(1,:) * hL.').', 1, f, fs);
-grpDR = grpdelay((pinvYLo(1,:) * hR.').', 1, f, fs);
+hL(end+1:nfft, :) = 0;
+hR(end+1:nfft, :) = 0;
+grpDL = grpdelay((real(pinvYLo(1, :)) * hL.').', 1, f, fs);
+grpDR = grpdelay((real(pinvYLo(1, :)) * hR.').', 1, f, fs);
+hL = circshift(hL, -round(median(grpDL)));
+hR = circshift(hR, -round(median(grpDR)));
 
-hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(median(grpDL)));
-hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(median(grpDR)));
-
-HL = fft(hL,nfft);
-HR = fft(hR,nfft);
-
-numPosFreqs = nfft/2+1;
+% transform into frequency domain
+HL = fft(hL);
+HR = fft(hR);
 
 % simulate plane wave impinging on SMA 
 params.order = order;
@@ -150,19 +149,37 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-W_MLS_l(1,:) = W_MLS_l(2,:); % DC extension
-W_MLS_r(1,:) = W_MLS_r(2,:);
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1,:)))];
-wMlsL = ifft(W_MLS_l,nfft,'symmetric');
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1,:)))];
-wMlsR = ifft(W_MLS_r,nfft,'symmetric');
+% DC extension
+W_MLS_l(1, :) = W_MLS_l(2, :);
+W_MLS_r(1, :) = W_MLS_r(2, :);
 
-% shorten, shift
+% fix spectrum (force real against rounding errors)
+W_MLS_l(1, :) = real(W_MLS_l(1, :)); % DC bin
+W_MLS_r(1, :) = real(W_MLS_r(1, :));
+if ~mod(nfft, 2) % is even
+    W_MLS_l(end, :) = real(W_MLS_l(end, :)); % Nyquist bin
+    W_MLS_r(end, :) = real(W_MLS_r(end, :));
+end
+
+% transform into time domain
+W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
+W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
+wMlsL = ifft(W_MLS_l);
+wMlsR = ifft(W_MLS_r);
+if isreal(YHi)
+    assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
+    assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
+end
+
+% shift from zero-phase-like to linear-phase-like
+% and restore initial group-delay difference between ears
 n_shift = nfft/2;
 wMlsL = circshift(wMlsL, n_shift);
 wMlsR = circshift(wMlsR, n_shift);
-wMlsL = wMlsL(nfft/2-len/2+1:nfft/2+len/2,:);
-wMlsR = wMlsR(nfft/2-len/2+1:nfft/2+len/2,:);
+
+% shorten to target length
+wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
+wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
 
 % fade
 n_fadein = round(REL_FADE_LEN * len);

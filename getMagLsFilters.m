@@ -35,37 +35,38 @@ NFFT_MAX_LEN    = 2048; % maxium length of result in samples
 F_CUT           = 2000; % transition frequency in Hz
 REL_FADE_LEN    = 0.15; % relative length of result fading window
 
-if (len < size(hL,1))
-    error('len too short')
-end
+assert(len >= size(hL, 1), 'len too short');
 
-nfft = max(2*len,NFFT_MAX_LEN);
+numHarmonics = (order+1)^2;
+numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition);
 pinvY = pinv(Y);
 
-f = linspace(0,fs/2,nfft/2+1);
-k_cut = round(F_CUT/f(2) + 1);
+nfft = max(2*len, NFFT_MAX_LEN);
+f = linspace(0, fs/2, nfft/2+1).';
+k_cut = ceil(F_CUT/f(2));
+numPosFreqs = length(f);
 
-% zero pad and remove delay (alternative to applying global phase delay later)
+% zero pad and remove group delay (alternative to applying global phase delay later)
+hL(end+1:nfft, :) = 0;
+hR(end+1:nfft, :) = 0;
 grpDL = grpdelay(hL * pinvY(1,:)', 1, f, fs);
 grpDR = grpdelay(hR * pinvY(1,:)', 1, f, fs);
-
-hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(median(grpDL)));
-hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(median(grpDR)));
-HL = fft(hL,nfft);
-HR = fft(hR,nfft);
+hL = circshift(hL, -round(median(grpDL)));
+hR = circshift(hR, -round(median(grpDR)));
 
 w_LS_l = hL * pinvY';
 w_LS_r = hR * pinvY';
 
-W_LS_l = fft(w_LS_l,nfft);
-W_LS_r = fft(w_LS_r,nfft);
+% transform into frequency domain
+HL = fft(hL);
+HR = fft(hR);
+W_LS_l = fft(w_LS_l);
+W_LS_r = fft(w_LS_r);
 
-numPosFreqs = nfft/2+1;
-
-W_MLS_l = W_LS_l(1:numPosFreqs,:);
-W_MLS_r = W_LS_r(1:numPosFreqs,:);
+W_MLS_l = W_LS_l(1:numPosFreqs, :);
+W_MLS_r = W_LS_r(1:numPosFreqs, :);
 for k = k_cut:numPosFreqs
     phi_l = angle(W_MLS_l(k-1,:) * Y');
     W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
@@ -78,10 +79,7 @@ if applyDiffusenessConst
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
-    
-    numDirections = size(hL,2);
-    numHarmonics = (order+1)^2;
-    
+
     M = zeros(numPosFreqs, 2, 2);
     HCorr = zeros(numPosFreqs, numHarmonics, 2);
     R = zeros(numPosFreqs, 2, 2);
@@ -117,17 +115,33 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1,:)))];
-wMlsL = ifft(W_MLS_l,nfft,'symmetric');
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1,:)))];
-wMlsR = ifft(W_MLS_r,nfft,'symmetric');
+% fix spectrum (force real against rounding errors)
+W_MLS_l(1, :) = real(W_MLS_l(1, :)); % DC bin
+W_MLS_r(1, :) = real(W_MLS_r(1, :));
+if ~mod(nfft, 2) % is even
+    W_MLS_l(end, :) = real(W_MLS_l(end, :)); % Nyquist bin
+    W_MLS_r(end, :) = real(W_MLS_r(end, :));
+end
 
-% shorten, shift
+% transform into time domain
+W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
+W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
+wMlsL = ifft(W_MLS_l);
+wMlsR = ifft(W_MLS_r);
+if isreal(Y)
+    assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
+    assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
+end
+
+% shift from zero-phase-like to linear-phase-like
+% and restore initial group-delay difference between ears
 n_shift = nfft/2;
 wMlsL = circshift(wMlsL, n_shift);
 wMlsR = circshift(wMlsR, n_shift);
-wMlsL = wMlsL(nfft/2-len/2+1:nfft/2+len/2,:);
-wMlsR = wMlsR(nfft/2-len/2+1:nfft/2+len/2,:);
+
+% shorten to target length
+wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
+wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
 
 % fade
 n_fadein = round(REL_FADE_LEN * len);
