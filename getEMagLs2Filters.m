@@ -85,8 +85,6 @@ params.shDefinition = shDefinition;
 params.shFunction = shFunction;
 smairMat = getSMAIRMatrix(params);
 
-W_LS_l = zeros(numPosFreqs, numMics);
-W_LS_r = zeros(numPosFreqs, numMics);
 W_MLS_l = zeros(numPosFreqs, numMics);
 W_MLS_r = zeros(numPosFreqs, numMics);
 for k = 2:numPosFreqs % leave out first bin, here bn = 0
@@ -95,19 +93,16 @@ for k = 2:numPosFreqs % leave out first bin, here bn = 0
     s = diag(S);
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     regInvY = (V .* s.') * U';
-    
-    W_LS_l(k,:) = (regInvY * HL(k,:).').';
-    W_LS_r(k,:) = (regInvY * HR(k,:).').';
-    
-    if k >= k_cut
+
+    if k >= k_cut % magnitude least-squares
         phiMagLsSmaL = angle(pwGrid.' * W_MLS_l(k-1,:).');
         phiMagLsSmaR = angle(pwGrid.' * W_MLS_r(k-1,:).');
         
         W_MLS_l(k,:) = regInvY * (abs(HL(k,:)).' .* exp(1i * phiMagLsSmaL));
         W_MLS_r(k,:) = regInvY * (abs(HR(k,:)).' .* exp(1i * phiMagLsSmaR));
-    else
-        W_MLS_l(k,:) = W_LS_l(k,:);
-        W_MLS_r(k,:) = W_LS_r(k,:);
+    else % least-squares
+        W_MLS_l(k,:) = (regInvY * HL(k,:).').';
+        W_MLS_r(k,:) = (regInvY * HR(k,:).').';
     end
 end
 

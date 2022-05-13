@@ -17,6 +17,8 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+### 2022-05-13
+- Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to slightly improve computation time
 ### 2022-05-03
 - Update `testEMagLs.m` to add used SH basis type in exported file names (update file names of respective reference results)
 - Update `testEMagLs.m` to export audio rendering results as an option
