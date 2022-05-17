@@ -27,7 +27,7 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'real'; % real or complex
+shDefinition = 'complex'; % real or complex
 
 if (len < size(hL,1))
     error('len too short')
@@ -72,12 +72,12 @@ smairMat = getSMAIRMatrix(params);
 
 svdRegulConst = 0.01;
 
-W_LS_l = zeros(numPosFreqs, numMics);
-W_LS_r = zeros(numPosFreqs, numMics);
-W_MLS_l = zeros(numPosFreqs, numMics);
-W_MLS_r = zeros(numPosFreqs, numMics);
-for k = 2:numPosFreqs % leave out first bin, here bn = 0
-    pwGrid = smairMat(:,:,k) * YHi;
+W_LS_l = zeros(nfft, numMics);
+W_LS_r = zeros(nfft, numMics);
+W_MLS_l = zeros(nfft, numMics);
+W_MLS_r = zeros(nfft, numMics);
+for k = 1:numPosFreqs % leave out first bin, here bn = 0
+    pwGrid = smairMat(:,:,k) * conj(YHi);
     [U,S,V] = svd(pwGrid.','econ');
     s = diag(S);
     s = 1 ./ max(s, svdRegulConst * max(s)); % regularize
@@ -85,6 +85,19 @@ for k = 2:numPosFreqs % leave out first bin, here bn = 0
     
     W_LS_l(k,:) = (regInvY * HL(k,:).').';
     W_LS_r(k,:) = (regInvY * HR(k,:).').';
+
+    % calculate negative frequencies (important in case of complex-valued
+    % SHs)
+    if k > 1 && k < numPosFreqs
+        pwGridNeg = smairMat(:,:,end-k+2) * conj(YHi);
+        [UNeg,SNeg,VNeg] = svd(pwGridNeg.','econ');
+        sNeg = diag(SNeg);
+        sNeg = 1 ./ max(sNeg, svdRegulConst * max(sNeg)); % regularize
+        regInvYNeg = (VNeg .* sNeg.') * UNeg';
+
+        W_LS_l(end-k+2,:) = (regInvYNeg * conj(HL(k,:)).').';
+        W_LS_r(end-k+2,:) = (regInvYNeg * conj(HR(k,:)).').';
+    end
     
     if k >= k_cut
         phiMagLsSmaL = angle(pwGrid.' * W_MLS_l(k-1,:).');
@@ -92,9 +105,28 @@ for k = 2:numPosFreqs % leave out first bin, here bn = 0
         
         W_MLS_l(k,:) = regInvY * (abs(HL(k,:)).' .* exp(1i * phiMagLsSmaL));
         W_MLS_r(k,:) = regInvY * (abs(HR(k,:)).' .* exp(1i * phiMagLsSmaR));
+
+        if k > 1 && k < numPosFreqs
+            phiMagLsSmaLNeg = angle(pwGridNeg.' * conj(W_MLS_l(k-1,:)).');
+            phiMagLsSmaRNeg = angle(pwGridNeg.' * conj(W_MLS_r(k-1,:)).');
+            
+            W_MLS_l(end-k+2,:) = regInvYNeg * (abs(HL(k,:)).' .* exp(1i * phiMagLsSmaLNeg));
+            W_MLS_r(end-k+2,:) = regInvYNeg * (abs(HR(k,:)).' .* exp(1i * phiMagLsSmaRNeg));
+        end
+
+        % Nyquist
+        if k == numPosFreqs
+            W_MLS_l(k,:) = regInvY * real(abs(HL(k,:)).' .* exp(1i * phiMagLsSmaL));
+            W_MLS_r(k,:) = regInvY * real(abs(HR(k,:)).' .* exp(1i * phiMagLsSmaR));
+        end
     else
         W_MLS_l(k,:) = W_LS_l(k,:);
         W_MLS_r(k,:) = W_LS_r(k,:);
+
+        if k > 1 && k < numPosFreqs
+            W_MLS_l(end-k+2,:) = W_LS_l(end-k+2,:);
+            W_MLS_r(end-k+2,:) = W_LS_r(end-k+2,:);
+        end
     end
 end
 
@@ -138,12 +170,14 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-W_MLS_l(1,:) = W_MLS_l(2,:); % DC extension
-W_MLS_r(1,:) = W_MLS_r(2,:);
+W_MLS_l(1,:) = real(W_MLS_l(2,:)); % DC extension
+W_MLS_r(1,:) = real(W_MLS_r(2,:));
+W_MLS_l(end,:) = real(W_MLS_l(end,:));
+W_MLS_r(end,:) = real(W_MLS_r(end,:));
 W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1,:)))];
-wMlsL = ifft(W_MLS_l,nfft,'symmetric');
+wMlsL = ifft(W_MLS_l,nfft);
 W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1,:)))];
-wMlsR = ifft(W_MLS_r,nfft,'symmetric');
+wMlsR = ifft(W_MLS_r,nfft);
 
 % shorten, shift
 n_shift = nfft/2;

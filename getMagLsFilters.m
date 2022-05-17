@@ -24,7 +24,7 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'real'; % real or complex
+shDefinition = 'complex'; % real or complex
 
 if (len < size(hL,1))
     error('len too short')
@@ -55,15 +55,28 @@ W_LS_r = fft(w_LS_r,nfft);
 
 numPosFreqs = nfft/2+1;
 
-W_MLS_l = W_LS_l(1:numPosFreqs,:);
-W_MLS_r = W_LS_r(1:numPosFreqs,:);
-for k = k_cut:numPosFreqs
+W_MLS_l = W_LS_l;
+W_MLS_r = W_LS_r;
+for k = k_cut:numPosFreqs-1
     phi_l = angle(W_MLS_l(k-1,:) * Y');
     W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
     
     phi_r = angle(W_MLS_r(k-1,:) * Y');
     W_MLS_r(k,:) = (abs(HR(k,:)) .* exp(1i * phi_r)) * pinvY';
+
+    % calculate negative frequencies (important in case of complex-valued
+    % SHs)
+    phi_l_n = angle(conj(W_MLS_l(k-1,:)) * Y');
+    W_MLS_l(end-k+2,:) = (abs(HL(k,:)) .* exp(1i * phi_l_n)) * pinvY';
+    
+    phi_r_n = angle(conj(W_MLS_r(k-1,:)) * Y');
+    W_MLS_r(end-k+2,:) = (abs(HR(k,:)) .* exp(1i * phi_r_n)) * pinvY';
 end
+
+% Nyuist bin
+k = numPosFreqs;
+phi_l = angle(W_MLS_l(k-1,:) * Y');
+W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
 
 if applyDiffusenessConst
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
@@ -108,10 +121,8 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1,:)))];
-wMlsL = ifft(W_MLS_l,nfft,'symmetric');
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1,:)))];
-wMlsR = ifft(W_MLS_r,nfft,'symmetric');
+wMlsL = ifft(W_MLS_l,nfft);
+wMlsR = ifft(W_MLS_r,nfft);
 
 % shorten, shift
 n_shift = nfft/2;

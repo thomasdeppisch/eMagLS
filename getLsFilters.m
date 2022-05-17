@@ -19,7 +19,7 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'real'; % real or complex
+shDefinition = 'complex'; % real or complex
 
 Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
 pinvY = pinv(Y);

@@ -41,8 +41,8 @@ fs = double(HRIR_L2702.fs);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, filterLen, false);
 
 %% sh transform and radial filter (for LS and conventional MagLS)
-E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'real');
-shRecording = smaRecording * pinv(E)';
+E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'complex');
+shRecording = smaRecording * pinv(conj(E)).';
 
 % parameters for the radial filter
 params.order = shOrder;
@@ -76,13 +76,13 @@ eMagLs2Bin = binauralDecode(smaRecording, fs, wEMls2L, wEMls2R, fs);
 % between MagLS and eMagLS (good headphones needed)
 
 % LS
-sound(lsBin./max(abs(lsBin(:))) * 0.5, fs);
+sound(real(lsBin)./max(abs(lsBin(:))) * 0.5, fs);
 pause(8)
 % MagLS
-sound(magLsBin./max(abs(magLsBin(:))) * 0.5, fs);
+sound(real(magLsBin)./max(abs(magLsBin(:))) * 0.5, fs);
 pause(8)
 % eMagLS
-sound(eMagLsBin./max(abs(eMagLsBin(:))) * 0.5, fs);
+sound(real(eMagLsBin)./max(abs(eMagLsBin(:))) * 0.5, fs);
 pause(8)
 % eMagLS2
-sound(eMagLs2Bin./max(abs(eMagLs2Bin(:))) * 0.5, fs);
+sound(real(eMagLs2Bin)./max(abs(eMagLs2Bin(:))) * 0.5, fs);
