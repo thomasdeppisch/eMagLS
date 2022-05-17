@@ -122,37 +122,36 @@ if DO_VERIFY_REFERENCE
         warning('Veryfying rendering filters ... skipped.');
     else
         % TODO: This verification could also check the match of other parameters
-        % TODO: It might be good to introduce a small error tolerance here
-    
+
         refFile = sprintf(refFiles, 'LS');
         fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
         ref = load(refFile);
-        assertAll(wLsL == ref.wLsL);
-        assertAll(wLsR == ref.wLsR);
+        assertAllClose(wLsL, ref.wLsL);
+        assertAllClose(wLsR, ref.wLsR);
         clear refFile ref;
         fprintf('done.\n');
     
         refFile = sprintf(refFiles, 'MagLS');
         fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
         ref = load(refFile);
-        assertAll(wMlsL == ref.wMlsL);
-        assertAll(wMlsR == ref.wMlsR);
+        assertAllClose(wMlsL, ref.wMlsL);
+        assertAllClose(wMlsR, ref.wMlsR);
         clear refFile ref;
         fprintf('done.\n');
     
         refFile = sprintf(refFiles, 'eMagLS');
         fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
         ref = load(refFile);
-        assertAll(wEMlsL == ref.wEMlsL);
-        assertAll(wEMlsR == ref.wEMlsR);
+        assertAllClose(wEMlsL, ref.wEMlsL);
+        assertAllClose(wEMlsR, ref.wEMlsR);
         clear refFile ref;
         fprintf('done.\n');
     
         refFile = sprintf(refFiles, 'eMagLS2');
         fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
         ref = load(refFile);
-        assertAll(wEMls2L == ref.wEMls2L);
-        assertAll(wEMls2R == ref.wEMls2R);
+        assertAllClose(wEMls2L, ref.wEMls2L);
+        assertAllClose(wEMls2R, ref.wEMls2R);
         clear refFile ref;
         fprintf('done.\n\n');
     end
@@ -325,6 +324,16 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
 %     end
 % end
 
-function assertAll(cond, varargin)
-    assert(all(cond, 'all'), varargin{:});
+function assertAllClose(x1, x2, norm_tol)
+    if nargin < 3; norm_tol = 1e-14; end
+
+    norm_diff = max(abs(x1 - x2), [], 'all') / max(abs([x1, x2]), [], 'all');
+    if norm_diff == 0
+        fprintf('no difference ... ');
+    elseif norm_diff < norm_tol
+        fprintf('%.3g max. norm. abs. difference ... ', norm_diff);
+    else
+        error('Maximum normalized absolute mismatch of %.3g (greater than %.3g tolarance).', ...
+            norm_diff, norm_tol);
+    end
 end
