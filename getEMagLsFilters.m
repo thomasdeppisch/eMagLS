@@ -50,9 +50,9 @@ assert(len >= size(hL, 1), 'len too short');
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-YHi = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition).';
-YLo = YHi(1:numHarmonics, :);
-pinvYLo = pinv(YLo');
+Y_Hi_conj = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
+Y_Lo_conj = Y_Hi_conj(1:numHarmonics, :);
+Y_Lo_pinv = pinv(Y_Lo_conj);
 
 nfft = max(2*len, NFFT_MAX_LEN);
 f = linspace(0, fs/2, nfft/2+1).';
@@ -62,8 +62,8 @@ numPosFreqs = length(f);
 % zero pad and remove group delay (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = grpdelay((real(pinvYLo(1, :)) * hL.').', 1, f, fs);
-grpDR = grpdelay((real(pinvYLo(1, :)) * hR.').', 1, f, fs);
+grpDL = grpdelay(hL * real(Y_Lo_pinv(:, 1)), 1, f, fs);
+grpDR = grpdelay(hR * real(Y_Lo_pinv(:, 1)), 1, f, fs);
 hL = circshift(hL, -round(median(grpDL)));
 hR = circshift(hR, -round(median(grpDR)));
 
@@ -90,21 +90,21 @@ smairMat = getSMAIRMatrix(params);
 W_MLS_l = zeros(numPosFreqs, numHarmonics);
 W_MLS_r = zeros(numPosFreqs, numHarmonics);
 for k = 2:numPosFreqs % leave out first bin, here bn = 0
-    pwGrid = smairMat(:,:,k) * YHi;
-    [U,S,V] = svd(pwGrid.','econ');
+    pwGrid = smairMat(:,:,k) * Y_Hi_conj;
+    [U,S,V] = svd(pwGrid.', 'econ');
     s = diag(S);
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    regInvY = (V .* s.') * U';
+    Y_reg_inv = conj(U) * (s .* V.');
 
     if k >= k_cut % magnitude least-squares
-        phiMagLsSmaL = angle(pwGrid.' * W_MLS_l(k-1,:).');
-        phiMagLsSmaR = angle(pwGrid.' * W_MLS_r(k-1,:).');
-        
-        W_MLS_l(k,:) = regInvY * (abs(HL(k,:)).' .* exp(1i * phiMagLsSmaL));
-        W_MLS_r(k,:) = regInvY * (abs(HR(k,:)).' .* exp(1i * phiMagLsSmaR));
+        phiMagLsSmaL = angle(W_MLS_l(k-1,:) * pwGrid);
+        phiMagLsSmaR = angle(W_MLS_r(k-1,:) * pwGrid);
+
+        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phiMagLsSmaL) * Y_reg_inv;
+        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phiMagLsSmaR) * Y_reg_inv;
     else % least-squares
-        W_MLS_l(k,:) = (regInvY * HL(k,:).').';
-        W_MLS_r(k,:) = (regInvY * HR(k,:).').';
+        W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
+        W_MLS_r(k,:) = HR(k,:) * Y_reg_inv;
     end
 end
 
@@ -166,7 +166,7 @@ W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
 W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
-if isreal(YHi)
+if isreal(Y_Hi_conj)
     assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
     assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
 end
