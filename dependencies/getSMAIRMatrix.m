@@ -88,8 +88,8 @@ function [smairMat, params] = getSMAIRMatrix(params)
     
     C = 343; % speed of sound in m/s
 
-    nfft = params.oversamplingFactor*params.irLen;
-    f = linspace(0,params.fs/2,nfft/2+1)';
+    nfft = params.oversamplingFactor * params.irLen;
+    f = linspace(0, params.fs/2, nfft/2+1).';
     k = 2*pi*f/C;
     kr = k * params.smaRadius;
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
@@ -102,68 +102,60 @@ function [smairMat, params] = getSMAIRMatrix(params)
     % set radial filtering for waveModel + arrayType combination
     switch lower(params.arrayType)
         case 'rigid'
-            bn = @(N_,kr_) 1i ./ ((kr_.').^2 .* sph_besselh_diff(N_, kr_).');
+            bn = @(N_,kr_) 1i ./ ((kr_).^2 .* sph_besselh_diff(N_, kr_));
 
         case 'open'
-            bn = @(N_,kr_) sph_besselj(N_, kr_).';
+            bn = @(N_,kr_) sph_besselj(N_, kr_);
             
         case 'directional' % open array with first-order directional mics -> see Politis, Array Response Simulator
             % 0 .. omni, 0.5 .. cardioid, 1 .. fig-of-eight
-            bn = @(N_,kr_) (params.dirCoeff*sph_besselj(N_, kr_).' - 1i*(1-params.dirCoeff)*sph_besselj_diff(N_, kr_).');
+            bn = @(N_,kr_) (params.dirCoeff*sph_besselj(N_, kr_) - 1i*(1-params.dirCoeff)*sph_besselj_diff(N_, kr_));
 
         otherwise
             error('Unkown arrayType parameter "%s".', params.arrayType);
     end
     
     % include actual microphone processing to simulate aliasing
-    n = (0:params.simulationOrder);
-%     fprintf('with @%s("%s") ... ', func2str(params.shFunction), params.shDefinition);
-    YMics = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';
-    YMicsLow = YMics(1:numShsOut, :);
+    Y_Hi_conj = conj(params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition));
+    Y_Lo_conj = Y_Hi_conj(:, 1:numShsOut);
+    Y_Lo_pinv = pinv(Y_Lo_conj);
 
+    n = (0:params.simulationOrder);
     switch lower(params.waveModel)
         case 'planewave'
-            bnAll = 4*pi*1i.^n .* bn(params.simulationOrder, kr).';
+             bnAll = (4*pi*1i.^n .* bn(params.simulationOrder, kr)).';
 
         case 'pointsource'
             hnAll = sph_besselh(params.simulationOrder, krSource);
-            bnAll = 4*pi*(-1i) .* k .* hnAll .* bn(params.simulationOrder, kr).';
+            bnAll = (4*pi*(-1i) .* k .* hnAll .* bn(params.simulationOrder, kr)).';
 
         otherwise
             error('Unkown waveModel parameter "%s".', params.waveModel);
     end
 
     pMics = zeros(numMics, numShsSimulation, numFreqs);
-
-    for ii = 1:numFreqs
-        Bn = diag(sh_repToOrder(bnAll(ii,:).').');
-        pMics(:,:,ii) = YMics' * Bn;
-    end
-
-    pMics(isnan(pMics)) = 0; % remove singularity for f = 0
-
     pN = zeros(numShsOut, numShsSimulation, numFreqs);
-    pinvYMicsLow = pinv(YMicsLow');
     for ii = 1:numFreqs
-        pN(:,:,ii) = pinvYMicsLow * pMics(:,:,ii);
+        Bn = diag(sh_repToOrder(bnAll(:,ii)));
+        pMics(:,:,ii) = Y_Hi_conj * Bn;
+        pN(:,:,ii) = Y_Lo_pinv * pMics(:,:,ii);
     end
-
-    % apply radial filtering
-    if (~strcmpi(params.radialFilter, 'none'))
-        radFilts = getRadialFilter(params);
-
-        smairMat = zeros(numShsOut, numShsSimulation, numFreqs);
-        for ii = 1:numFreqs
-            BnTi = diag(sh_repToOrder(radFilts(ii,:).').');
-            smairMat(:,:,ii) = BnTi * pN(:,:,ii);
-        end
-
-        smairMat(isnan(smairMat)) = 0;
-    else
-        smairMat = pN;
-    end
+    pMics(isnan(pMics)) = 0; % remove singularity for f = 0
+    pN(isnan(pN)) = 0; % remove singularity for f = 0
 
     if params.returnRawMicSigs
         smairMat = pMics;
+    else
+        smairMat = pN;
+        
+        % apply radial filtering
+        if (~strcmpi(params.radialFilter, 'none'))
+            radFilts = getRadialFilter(params).';
+            for ii = 1:numFreqs
+                BnTi = diag(sh_repToOrder(radFilts(:,ii)));
+                smairMat(:,:,ii) = BnTi * smairMat(:,:,ii);
+            end
+            smairMat(isnan(smairMat)) = 0;
+        end
     end
 end
