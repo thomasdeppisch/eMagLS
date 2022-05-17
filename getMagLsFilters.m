@@ -40,8 +40,8 @@ assert(len >= size(hL, 1), 'len too short');
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-Y = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition);
-pinvY = pinv(Y);
+Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition).';
+Y_pinv = pinv(Y_conj);
 
 nfft = max(2*len, NFFT_MAX_LEN);
 f = linspace(0, fs/2, nfft/2+1).';
@@ -51,13 +51,13 @@ numPosFreqs = length(f);
 % zero pad and remove group delay (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = grpdelay(hL * pinvY(1,:)', 1, f, fs);
-grpDR = grpdelay(hR * pinvY(1,:)', 1, f, fs);
+grpDL = grpdelay(hL * Y_pinv(:, 1), 1, f, fs);
+grpDR = grpdelay(hR * Y_pinv(:, 1), 1, f, fs);
 hL = circshift(hL, -round(median(grpDL)));
 hR = circshift(hR, -round(median(grpDR)));
 
-w_LS_l = hL * pinvY';
-w_LS_r = hR * pinvY';
+w_LS_l = hL * Y_pinv;
+w_LS_r = hR * Y_pinv;
 
 % transform into frequency domain
 HL = fft(hL);
@@ -68,11 +68,11 @@ W_LS_r = fft(w_LS_r);
 W_MLS_l = W_LS_l(1:numPosFreqs, :);
 W_MLS_r = W_LS_r(1:numPosFreqs, :);
 for k = k_cut:numPosFreqs
-    phi_l = angle(W_MLS_l(k-1,:) * Y');
-    W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
+    phi_l = angle(W_MLS_l(k-1,:) * Y_conj);
+    W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * Y_pinv;
     
-    phi_r = angle(W_MLS_r(k-1,:) * Y');
-    W_MLS_r(k,:) = (abs(HR(k,:)) .* exp(1i * phi_r)) * pinvY';
+    phi_r = angle(W_MLS_r(k-1,:) * Y_conj);
+    W_MLS_r(k,:) = (abs(HR(k,:)) .* exp(1i * phi_r)) * Y_pinv;
 end
 
 if applyDiffusenessConst
@@ -128,7 +128,7 @@ W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
 W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
-if isreal(Y)
+if isreal(Y_conj)
     assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
     assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
 end

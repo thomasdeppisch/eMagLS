@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-17
+- Update `getMagLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-15)
 - Update `testEMagLs.m` to accept tolerance when verifying rendering filters against the provided reference
 - Update functions to use `ifft()` without the forced symmetric parameter (fix to yield real or complex filters depending on the basis type)
 - Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to slightly improve computation time
