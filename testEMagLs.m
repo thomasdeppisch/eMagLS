@@ -325,7 +325,7 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
 % end
 
 function assertAllClose(x1, x2, norm_tol)
-    if nargin < 3; norm_tol = 1e-14; end
+    if nargin < 3; norm_tol = 1e-13; end
 
     norm_diff = max(abs(x1 - x2), [], 'all') / max(abs([x1, x2]), [], 'all');
     if norm_diff == 0

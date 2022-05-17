@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-17
+- Update `getEMagLs2Filters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-14)
 - Update `getEMagLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-15)
 - Update `getLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-16)
 - Update `getMagLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-15)
