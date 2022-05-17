@@ -40,7 +40,7 @@ assert(len >= size(hL, 1), 'len too short');
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition).';
+Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 
 nfft = max(2*len, NFFT_MAX_LEN);

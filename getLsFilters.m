@@ -26,10 +26,10 @@ if nargin < 7; shFunction = @getSH; end
 if nargin < 6 || isempty(shDefinition); shDefinition = 'real'; end
 
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-Y = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition);
-pinvY = pinv(Y);
+Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
+Y_pinv = pinv(Y_conj);
 
-wLsL = hL * pinvY';
-wLsR = hR * pinvY';
+wLsL = hL * Y_pinv;
+wLsR = hR * Y_pinv;
 
 end
