@@ -18,7 +18,12 @@ addpath(genpath('dependencies/'));
 %% configuration
 filterLen = 512;
 applyDiffusenessConst = false; % for MagLS, eMagLS and eMagLS2
+
+shFunction   = @getSH; % from Spherical-Harmonic-Transform toolbox
 shDefinition = 'real'; % or e.g. 'complex' # TODO: Fix complex rendering
+% % An alternative version which uses a different SH basis convention and implementation
+% shFunction   = @getSH_SFS; % from Spherical-Harmonic-Transform toolbox
+% shDefinition = 'wikipedia'; % or e.g. 'complex'
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
@@ -83,31 +88,25 @@ fprintf('done.\n\n');
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
 fprintf('Computing LS rendering filters ... with %d samples ... ', size(hL, 1));
-[wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder, shDefinition);
+[wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder, ...
+    shDefinition, shFunction);
 fprintf('done.\n');
 
 fprintf('Computing MagLS rendering filters ... with %d samples ... ', filterLen);
 [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    shOrder, fs, filterLen, applyDiffusenessConst, shDefinition);
+    shOrder, fs, filterLen, applyDiffusenessConst, shDefinition, shFunction);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-    applyDiffusenessConst, shDefinition);
+    applyDiffusenessConst, shDefinition, shFunction);
 fprintf('done.\n');
-
-% % An alternative version which uses a different SH basis convention and implementation
-% fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen);
-% [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-%     applyDiffusenessConst, shDefinition, @getSH_SFS);
-% fprintf('done.\n');
 
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, micGridZenRad, fs, filterLen, ...
-    applyDiffusenessConst, shDefinition);
+    applyDiffusenessConst, shDefinition, shFunction);
 fprintf('done.\n\n');
 
 %% verify rendering filters against provided reference
@@ -121,40 +120,49 @@ if DO_VERIFY_REFERENCE
     if DO_OVERRIDE_REFERENCE
         warning('Veryfying rendering filters ... skipped.');
     else
-        % TODO: This verification could also check the match of other parameters
-
-        refFile = sprintf(refFiles, 'LS');
-        fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
-        ref = load(refFile);
-        assertAllClose(wLsL, ref.wLsL);
-        assertAllClose(wLsR, ref.wLsR);
-        clear refFile ref;
-        fprintf('done.\n');
+        try
+            % TODO: This verification could also check the match of other parameters
     
-        refFile = sprintf(refFiles, 'MagLS');
-        fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
-        ref = load(refFile);
-        assertAllClose(wMlsL, ref.wMlsL);
-        assertAllClose(wMlsR, ref.wMlsR);
-        clear refFile ref;
-        fprintf('done.\n');
-    
-        refFile = sprintf(refFiles, 'eMagLS');
-        fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
-        ref = load(refFile);
-        assertAllClose(wEMlsL, ref.wEMlsL);
-        assertAllClose(wEMlsR, ref.wEMlsR);
-        clear refFile ref;
-        fprintf('done.\n');
-    
-        refFile = sprintf(refFiles, 'eMagLS2');
-        fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
-        ref = load(refFile);
-        assertAllClose(wEMls2L, ref.wEMls2L);
-        assertAllClose(wEMls2R, ref.wEMls2R);
-        clear refFile ref;
-        fprintf('done.\n\n');
+            refFile = sprintf(refFiles, 'LS');
+            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            ref = load(refFile);
+            assertAllClose(wLsL, ref.wLsL);
+            assertAllClose(wLsR, ref.wLsR);
+            clear refFile ref;
+            fprintf('done.\n');
+        
+            refFile = sprintf(refFiles, 'MagLS');
+            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            ref = load(refFile);
+            assertAllClose(wMlsL, ref.wMlsL);
+            assertAllClose(wMlsR, ref.wMlsR);
+            clear refFile ref;
+            fprintf('done.\n');
+        
+            refFile = sprintf(refFiles, 'eMagLS');
+            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            ref = load(refFile);
+            assertAllClose(wEMlsL, ref.wEMlsL);
+            assertAllClose(wEMlsR, ref.wEMlsR);
+            clear refFile ref;
+            fprintf('done.\n');
+        
+            refFile = sprintf(refFiles, 'eMagLS2');
+            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            ref = load(refFile);
+            assertAllClose(wEMls2L, ref.wEMls2L);
+            assertAllClose(wEMls2R, ref.wEMls2R);
+            clear refFile ref;
+            fprintf('done.\n');
+        catch ME
+            if strcmp(ME.identifier, 'MATLAB:load:couldNotReadFile')
+                warning(ME.identifier, '\nskipped (%s).', ME.message);
+            else
+                rethrow(ME);
+            end
+        end
     end
+    fprintf('\n');
 end
 
 %% replace reference filters
@@ -188,8 +196,7 @@ end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
-% This has to be adapted in case a different SH implementation is used
-E_conj = getSH(shOrder, [micGridAziRad, micGridZenRad], shDefinition)';
+E_conj = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition)';
 shRecording = smaRecording * pinv(E_conj);
 fprintf('done.\n');
 
@@ -310,19 +317,19 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
 %         rad2deg(gridAziZenRad(:, 2)), shDefinition);
 % end
 
-% function Y = getSH_SFS(order, gridAziZenRad, shDefinition)
-% % This uses a different SH implementation where this function has to match
-% % the signature (parameters and output format) of `getSH()`
-%     % from soundfieldsynthesis "Common" scripts
-%     % $ git clone https://github.com/JensAhrens/soundfieldsynthesis.git
-%     Y = zeros(size(gridAziZenRad, 1), (order+1)^2);
-%     for n = 0 : order
-%         for m = -n : n
-%             Y(:, n^2+n+m+1) = sphharm(n, m, ...
-%                 gridAziZenRad(:, 2), gridAziZenRad(:, 1), shDefinition);
-%         end
-%     end
-% end
+function Y = getSH_SFS(order, gridAziZenRad, shDefinition) %#ok<DEFNU> 
+% This uses a different SH implementation where this function has to match
+% the signature (parameters and output format) of `getSH()`
+    % from soundfieldsynthesis "Common" scripts
+    % $ git clone https://github.com/JensAhrens/soundfieldsynthesis.git
+    Y = zeros(size(gridAziZenRad, 1), (order+1)^2);
+    for n = 0 : order
+        for m = -n : n
+            Y(:, n^2+n+m+1) = sphharm(n, m, ...
+                gridAziZenRad(:, 2), gridAziZenRad(:, 1), shDefinition);
+        end
+    end
+end
 
 function assertAllClose(x1, x2, norm_tol)
     if nargin < 3; norm_tol = 1e-13; end

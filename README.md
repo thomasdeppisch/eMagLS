@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-18
+- Update `testEMagLs.m` to use a different SH basis implementation more easily
 - Update `getRadialFilter.m` and `getSMAIRMatrix.m` to use `sphModalCoeffs()` from Array-Response-Simulator</br>
 (therefore also remove own implementations of spherical hankel and bessel functions)</br>
 (this causes the resulting eMagLS and eMagLS2 rendering filters to be slightly different at 0 Hz and the Nyquist bin)</br>
