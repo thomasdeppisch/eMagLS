@@ -220,28 +220,28 @@ fprintf('done.\n\n');
 %% render binaurally
 % the LS and MagLS renderers need the radial filtered signals as input
 fprintf('Computing LS binaural rendering ... ');
-lsBin = binauralDecode(shRecordingRadFiltered, fs, wLsL, wLsR, fs);
+binLs = binauralDecode(shRecordingRadFiltered, fs, wLsL, wLsR, fs);
 fprintf('done.\n');
 
 fprintf('Computing MagLS binaural rendering ... ');
-magLsBin = binauralDecode(shRecordingRadFiltered, fs, wMlsL, wMlsR, fs);
+binMls = binauralDecode(shRecordingRadFiltered, fs, wMlsL, wMlsR, fs);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS binaural rendering ... ');
 % the eMagLS renderer needs the unfiltered SH-domain signal as input
-eMagLsBin = binauralDecode(shRecording, fs, wEMlsL, wEMlsR, fs);
+binEMls = binauralDecode(shRecording, fs, wEMlsL, wEMlsR, fs);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS2 binaural rendering ... ');
 % the eMagLS2 renderer needs the raw microphone signals as input
-eMagLs2Bin = binauralDecode(smaRecording, fs, wEMls2L, wEMls2R, fs);
+binEMls2 = binauralDecode(smaRecording, fs, wEMls2L, wEMls2R, fs);
 fprintf('done.\n');
 
 fprintf('Normalizing binaural renderings ... ');
-lsBin = lsBin ./ max(abs(lsBin(:))) * 0.5;
-magLsBin = magLsBin ./ max(abs(magLsBin(:))) * 0.5;
-eMagLsBin = eMagLsBin ./ max(abs(eMagLsBin(:))) * 0.5;
-eMagLs2Bin = eMagLs2Bin ./ max(abs(eMagLs2Bin(:))) * 0.5;
+binLs = binLs ./ max(abs(binLs(:))) * 0.5;
+binMls = binMls ./ max(abs(binMls(:))) * 0.5;
+binEMls = binEMls ./ max(abs(binEMls(:))) * 0.5;
+binEMls2 = binEMls2 ./ max(abs(binEMls2(:))) * 0.5;
 fprintf('done.\n\n');
 
 %% export binaural renderings
@@ -251,22 +251,22 @@ if DO_EXPORT_RENDERING
 
     audioFile = sprintf(audioFiles, 'LS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, lsBin, fs);
+    audiowrite(audioFile, binLs, fs);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'MagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, magLsBin, fs);
+    audiowrite(audioFile, binMls, fs);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'eMagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, eMagLsBin, fs);
+    audiowrite(audioFile, binEMls, fs);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'eMagLS2');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, eMagLs2Bin, fs);
+    audiowrite(audioFile, binEMls2, fs);
     fprintf('done.\n\n');
 
     clear audioFiles audioFile;
@@ -277,22 +277,22 @@ end
 % between MagLS and eMagLS (good headphones needed)
 if DO_PLAYBACK_RENDERING
     fprintf('Playing back LS binaural rendering ... ');
-    playblocking(audioplayer(lsBin, fs));
+    playblocking(audioplayer(binLs, fs));
     fprintf('done.\n');
     
     pause(0.5);
     fprintf('Playing back MagLS binaural rendering ... ');
-    playblocking(audioplayer(magLsBin, fs));
+    playblocking(audioplayer(binMls, fs));
     fprintf('done.\n');
     
     pause(0.5);
     fprintf('Playing back eMagLS binaural rendering ... ');
-    playblocking(audioplayer(eMagLsBin, fs));
+    playblocking(audioplayer(binEMls, fs));
     fprintf('done.\n');
     
     pause(0.5);
     fprintf('Playing back eMagLS2 binaural rendering ... ');
-    playblocking(audioplayer(eMagLs2Bin, fs));
+    playblocking(audioplayer(binEMls2, fs));
     fprintf('done.\n\n');
 end
 
