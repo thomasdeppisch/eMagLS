@@ -20,7 +20,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % 
 % Further parameters:
 % smaDesignAziZenRad, order, simulationOrder, fs, smaRadius, sourceDist,
-% noiseGainDb, oversamplingFactor, irLen, shDefinition, shFunction
+% noiseGainDb, oversamplingFactor, irLen, dirCoeff, shDefinition, shFunction
 %
 % Most parameters have default options! (default is a plane-wave em32 simulation)
 %
@@ -58,6 +58,9 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if (nargin < 1 || ~isfield(params,'sourceDist'))
         params.sourceDist = 2;
     end
+    if (nargin < 1 || ~isfield(params,'dirCoeff'))
+        params.dirCoeff = 0;
+    end
     if (nargin < 1 || ~isfield(params,'waveModel'))
         params.waveModel = 'planeWave';
     end
@@ -90,58 +93,39 @@ function [smairMat, params] = getSMAIRMatrix(params)
 
     nfft = params.oversamplingFactor * params.irLen;
     f = linspace(0, params.fs/2, nfft/2+1).';
-    k = 2*pi*f/C;
-    kr = k * params.smaRadius;
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
-    krSource = k * params.sourceDist;
     numShsOut = (params.order+1)^2;
     numShsSimulation = (params.simulationOrder+1)^2;
-    numFreqs = length(k);
+    numPosFreqs = length(f);
     numMics = size(params.smaDesignAziZenRad, 1);
 
-    % set radial filtering for waveModel + arrayType combination
-    switch lower(params.arrayType)
-        case 'rigid'
-            bn = @(N_,kr_) 1i ./ ((kr_).^2 .* sph_besselh_diff(N_, kr_));
-
-        case 'open'
-            bn = @(N_,kr_) sph_besselj(N_, kr_);
-            
-        case 'directional' % open array with first-order directional mics -> see Politis, Array Response Simulator
-            % 0 .. omni, 0.5 .. cardioid, 1 .. fig-of-eight
-            bn = @(N_,kr_) (params.dirCoeff*sph_besselj(N_, kr_) - 1i*(1-params.dirCoeff)*sph_besselj_diff(N_, kr_));
-
-        otherwise
-            error('Unkown arrayType parameter "%s".', params.arrayType);
-    end
-    
     % include actual microphone processing to simulate aliasing
     Y_Hi_conj = conj(params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition));
-    Y_Lo_conj = Y_Hi_conj(:, 1:numShsOut);
-    Y_Lo_pinv = pinv(Y_Lo_conj);
+    Y_Lo_pinv = pinv(Y_Hi_conj(:, 1:numShsOut));
 
-    n = (0:params.simulationOrder);
-    switch lower(params.waveModel)
-        case 'planewave'
-             bnAll = (4*pi*1i.^n .* bn(params.simulationOrder, kr)).';
-
-        case 'pointsource'
-            hnAll = sph_besselh(params.simulationOrder, krSource);
-            bnAll = (4*pi*(-1i) .* k .* hnAll .* bn(params.simulationOrder, kr)).';
-
-        otherwise
-            error('Unkown waveModel parameter "%s".', params.waveModel);
+    % set radial filtering for waveModel + arrayType combination
+    if strcmpi(params.waveModel, 'pointSource')
+        % TODO: Add spherical waves
+        error('WaveModel parameter "%s" not yet implemented.', params.waveModel);
+    end
+    % TODO: It is not quite clear why there is a minus required here for
+    % the rendered BRIRs to start with a positive peak (which seems
+    % reasonable). Without the minus, the resulting BRIRs are inverted.
+    bnAll = -sphModalCoeffs(params.simulationOrder, 2*pi*f/C * params.smaRadius, ...
+        params.arrayType, params.dirCoeff).';
+    if ~mod(nfft, 2) % is even
+        bnAll(:, end) = real(bnAll(:, end)); % Nyquist bin
     end
 
-    pMics = zeros(numMics, numShsSimulation, numFreqs);
-    pN = zeros(numShsOut, numShsSimulation, numFreqs);
-    for ii = 1:numFreqs
-        Bn = diag(sh_repToOrder(bnAll(:,ii)));
-        pMics(:,:,ii) = Y_Hi_conj * Bn;
-        pN(:,:,ii) = Y_Lo_pinv * pMics(:,:,ii);
+    pMics = zeros(numMics, numShsSimulation, numPosFreqs);
+    pN = zeros(numShsOut, numShsSimulation, numPosFreqs);
+    for k = 1:numPosFreqs
+        Bn = diag(sh_repToOrder(bnAll(:,k)));
+        pMics(:,:,k) = Y_Hi_conj * Bn;
+        if ~params.returnRawMicSigs
+            pN(:,:,k) = Y_Lo_pinv * pMics(:,:,k);
+        end
     end
-    pMics(isnan(pMics)) = 0; % remove singularity for f = 0
-    pN(isnan(pN)) = 0; % remove singularity for f = 0
 
     if params.returnRawMicSigs
         smairMat = pMics;
@@ -149,13 +133,10 @@ function [smairMat, params] = getSMAIRMatrix(params)
         smairMat = pN;
         
         % apply radial filtering
-        if (~strcmpi(params.radialFilter, 'none'))
-            radFilts = getRadialFilter(params).';
-            for ii = 1:numFreqs
-                BnTi = diag(sh_repToOrder(radFilts(:,ii)));
-                smairMat(:,:,ii) = BnTi * smairMat(:,:,ii);
-            end
-            smairMat(isnan(smairMat)) = 0;
+        radFilts = getRadialFilter(params).'; % may be 'none'
+        for k = 1:numPosFreqs
+            BnTi = diag(sh_repToOrder(radFilts(:,k)));
+            smairMat(:,:,k) = BnTi * smairMat(:,:,k);
         end
     end
 end

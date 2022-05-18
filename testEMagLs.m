@@ -42,7 +42,7 @@ DO_PLAYBACK_RENDERING = true;
 % DO_VERIFY_REFERENCE   = false;
 % DO_OVERRIDE_REFERENCE = true;
 % DO_EXPORT_RENDERING   = false;
-% DO_PLAY_RENDERING     = false;
+% DO_PLAYBACK_RENDERING = false;
 
 %% load data
 tic; % start measuring execution time
@@ -189,8 +189,8 @@ end
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
 % This has to be adapted in case a different SH implementation is used
-E = getSH(shOrder, [micGridAziRad, micGridZenRad], shDefinition);
-shRecording = smaRecording * pinv(E)';
+E_conj = getSH(shOrder, [micGridAziRad, micGridZenRad], shDefinition)';
+shRecording = smaRecording * pinv(E_conj);
 fprintf('done.\n');
 
 % parameters for the radial filter
