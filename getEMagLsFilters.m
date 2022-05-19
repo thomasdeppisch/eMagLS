@@ -51,8 +51,7 @@ numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_Hi_conj = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
-Y_Lo_conj = Y_Hi_conj(1:numHarmonics, :);
-Y_Lo_pinv = pinv(Y_Lo_conj);
+Y_Lo_pinv = pinv(Y_Hi_conj(1:numHarmonics, :));
 
 nfft = max(2*len, NFFT_MAX_LEN);
 f = linspace(0, fs/2, nfft/2+1).';

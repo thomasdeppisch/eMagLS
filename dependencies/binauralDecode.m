@@ -53,8 +53,8 @@ function binauralOut = binauralDecode(in, inFs, decodingFilterLeft, decodingFilt
 
     % force real output (may be relevant in case of complex SHs)
     if ~isreal(binauralOut)
-        warning('discarding imaginary part with sum of [%.2g,%.2g] in rendering result.', ...
-            sum(imag(binauralOut(:,1))), sum(imag(binauralOut(:,2))));
+        warning('discarding imaginary part with sum of [%.2g, %.2g] in rendering result.', ...
+            sum(abs(imag(binauralOut(:,1)))), sum(abs(imag(binauralOut(:,2)))));
         binauralOut = real(binauralOut);
     end
 end
