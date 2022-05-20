@@ -37,7 +37,7 @@ numMics = length(micGridAziRad);
 numDirections = size(hL,2);
 nfft = max(2048,2*len);
 simulationOrder = 32;
-YHi = getSH(simulationOrder, [hrirGridAziRad,hrirGridZenRad], shDefinition).';
+YHi = conj(getSH(simulationOrder, [hrirGridAziRad,hrirGridZenRad], shDefinition));
 
 f_cut = 2000; % transition frequency 
 f = linspace(0,fs/2,nfft/2+1);
@@ -77,26 +77,26 @@ W_LS_r = zeros(nfft, numMics);
 W_MLS_l = zeros(nfft, numMics);
 W_MLS_r = zeros(nfft, numMics);
 for k = 1:numPosFreqs % leave out first bin, here bn = 0
-    pwGrid = smairMat(:,:,k) * conj(YHi);
+    pwGrid = smairMat(:,:,k) * YHi.';
     [U,S,V] = svd(pwGrid.','econ');
     s = diag(S);
     s = 1 ./ max(s, svdRegulConst * max(s)); % regularize
     regInvY = (V .* s.') * U';
     
-    W_LS_l(k,:) = (regInvY * HL(k,:).').';
-    W_LS_r(k,:) = (regInvY * HR(k,:).').';
+    W_LS_l(k,:) = HL(k,:) * regInvY.';
+    W_LS_r(k,:) = HR(k,:) * regInvY.';
 
     % calculate negative frequencies (important in case of complex-valued
     % SHs)
     if k > 1 && k < numPosFreqs
-        pwGridNeg = smairMat(:,:,end-k+2) * conj(YHi);
+        pwGridNeg = smairMat(:,:,end-k+2) * YHi.';
         [UNeg,SNeg,VNeg] = svd(pwGridNeg.','econ');
         sNeg = diag(SNeg);
         sNeg = 1 ./ max(sNeg, svdRegulConst * max(sNeg)); % regularize
         regInvYNeg = (VNeg .* sNeg.') * UNeg';
 
-        W_LS_l(end-k+2,:) = (regInvYNeg * conj(HL(k,:)).').';
-        W_LS_r(end-k+2,:) = (regInvYNeg * conj(HR(k,:)).').';
+        W_LS_l(end-k+2,:) = conj(HL(k,:)) * regInvYNeg.';
+        W_LS_r(end-k+2,:) = conj(HR(k,:)) * regInvYNeg.';
     end
     
     if k >= k_cut
@@ -170,13 +170,7 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-W_MLS_l(1,:) = real(W_MLS_l(2,:)); % DC extension
-W_MLS_r(1,:) = real(W_MLS_r(2,:));
-W_MLS_l(end,:) = real(W_MLS_l(end,:));
-W_MLS_r(end,:) = real(W_MLS_r(end,:));
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1,:)))];
 wMlsL = ifft(W_MLS_l,nfft);
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1,:)))];
 wMlsR = ifft(W_MLS_r,nfft);
 
 % shorten, shift

@@ -42,7 +42,7 @@ fs = double(HRIR_L2702.fs);
 
 %% sh transform and radial filter (for LS and conventional MagLS)
 E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'complex');
-shRecording = smaRecording * pinv(conj(E)).';
+shRecording = smaRecording * pinv(E).';
 
 % parameters for the radial filter
 params.order = shOrder;

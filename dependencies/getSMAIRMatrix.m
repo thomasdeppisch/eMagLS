@@ -106,17 +106,17 @@ function [smairMat, params] = getSMAIRMatrix(params)
 
     for ii = 1:numFreqs
         Bn = diag(sh_repToOrder(bnAll(ii,:).').');
-        pMics(:,:,ii) = YMics' * Bn;
+        pMics(:,:,ii) = YMics.' * Bn;
 
         if ii > 1 && ii < numFreqs
-            pMics(:,:,end-ii+2) = YMics' * conj(Bn);
+            pMics(:,:,end-ii+2) = YMics.' * conj(Bn);
         end
     end
 
     pMics(isnan(pMics)) = 0; % remove singularity for f = 0
 
     pN = zeros(numShsOut, numShsSimulation, nfft);
-    pinvYMicsLow = pinv(YMicsLow');
+    pinvYMicsLow = pinv(YMicsLow.');
     for ii = 1:nfft
         pN(:,:,ii) = pinvYMicsLow * pMics(:,:,ii);
     end

@@ -31,24 +31,24 @@ if (len < size(hL,1))
 end
 
 nfft = max(2*len,2048);
-Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
-pinvY = pinv(Y);
+Y = conj(getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition));
+pinvY = pinv(Y.');
 
 f_cut = 2000; % transition frequency 
 f = linspace(0,fs/2,nfft/2+1);
 k_cut = round(f_cut/f(2) + 1);
 
 % zero pad and remove delay (alternative to applying global phase delay later)
-grpDL = grpdelay(hL * pinvY(1,:)', 1, f, fs);
-grpDR = grpdelay(hR * pinvY(1,:)', 1, f, fs);
+grpDL = grpdelay(hL * pinvY(:,1), 1, f, fs);
+grpDR = grpdelay(hR * pinvY(:,1), 1, f, fs);
 
 hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(median(grpDL)));
 hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(median(grpDR)));
 HL = fft(hL,nfft);
 HR = fft(hR,nfft);
 
-w_LS_l = hL * pinvY';
-w_LS_r = hR * pinvY';
+w_LS_l = hL * pinvY;
+w_LS_r = hR * pinvY;
 
 W_LS_l = fft(w_LS_l,nfft);
 W_LS_r = fft(w_LS_r,nfft);
@@ -58,25 +58,25 @@ numPosFreqs = nfft/2+1;
 W_MLS_l = W_LS_l;
 W_MLS_r = W_LS_r;
 for k = k_cut:numPosFreqs-1
-    phi_l = angle(W_MLS_l(k-1,:) * Y');
-    W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
+    phi_l = angle(W_MLS_l(k-1,:) * Y.');
+    W_MLS_l(k,:) = (abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY;
     
-    phi_r = angle(W_MLS_r(k-1,:) * Y');
-    W_MLS_r(k,:) = (abs(HR(k,:)) .* exp(1i * phi_r)) * pinvY';
+    phi_r = angle(W_MLS_r(k-1,:) * Y.');
+    W_MLS_r(k,:) = (abs(HR(k,:)) .* exp(1i * phi_r)) * pinvY;
 
     % calculate negative frequencies (important in case of complex-valued
     % SHs)
-    phi_l_n = angle(conj(W_MLS_l(k-1,:)) * Y');
-    W_MLS_l(end-k+2,:) = (abs(HL(k,:)) .* exp(1i * phi_l_n)) * pinvY';
+    phi_l_n = angle(conj(W_MLS_l(k-1,:)) * Y.');
+    W_MLS_l(end-k+2,:) = (abs(HL(k,:)) .* exp(1i * phi_l_n)) * pinvY;
     
-    phi_r_n = angle(conj(W_MLS_r(k-1,:)) * Y');
-    W_MLS_r(end-k+2,:) = (abs(HR(k,:)) .* exp(1i * phi_r_n)) * pinvY';
+    phi_r_n = angle(conj(W_MLS_r(k-1,:)) * Y.');
+    W_MLS_r(end-k+2,:) = (abs(HR(k,:)) .* exp(1i * phi_r_n)) * pinvY;
 end
 
 % Nyuist bin
 k = numPosFreqs;
-phi_l = angle(W_MLS_l(k-1,:) * Y');
-W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY';
+phi_l = angle(W_MLS_l(k-1,:) * Y.');
+W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * pinvY;
 
 if applyDiffusenessConst
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,

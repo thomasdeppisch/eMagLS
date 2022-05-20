@@ -38,21 +38,20 @@ numHarmonics = (order+1)^2;
 numDirections = size(hL,2);
 nfft = max(2048,2*len);
 simulationOrder = 32;
-YHi = getSH(simulationOrder, [hrirGridAziRad,hrirGridZenRad], shDefinition).';
-YLo = YHi(1:numHarmonics,:);
-pinvYLo = pinv(YLo');
+YHi = conj(getSH(simulationOrder, [hrirGridAziRad,hrirGridZenRad], shDefinition));
+YLo = YHi(:,1:numHarmonics);
+pinvYLo = pinv(YLo.');
 
 f_cut = 2000; % transition frequency 
 f = linspace(0,fs/2,nfft/2+1);
 k_cut = round(f_cut/f(2) + 1);
 
 % zero pad and remove group delay (alternative to applying global phase delay later)
-grpDL = grpdelay((pinvYLo(1,:) * hL.').', 1, f, fs);
-grpDR = grpdelay((pinvYLo(1,:) * hR.').', 1, f, fs);
+grpDL = grpdelay(hL * pinvYLo(:,1), 1, f, fs);
+grpDR = grpdelay(hR * pinvYLo(:,1), 1, f, fs);
 
 hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(median(grpDL)));
 hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(median(grpDR)));
-
 HL = fft(hL,nfft);
 HR = fft(hR,nfft);
 
@@ -80,26 +79,26 @@ W_LS_r = zeros(nfft, numHarmonics);
 W_MLS_l = zeros(nfft, numHarmonics);
 W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs % leave out first bin, here bn = 0
-    pwGrid = smairMat(:,:,k) * conj(YHi);
+    pwGrid = smairMat(:,:,k) * YHi.';
     [U,S,V] = svd(pwGrid.','econ');
     s = diag(S);
     s = 1 ./ max(s, svdRegulConst * max(s)); % regularize
     regInvY = (V .* s.') * U';
     
-    W_LS_l(k,:) = (regInvY * HL(k,:).').';
-    W_LS_r(k,:) = (regInvY * HR(k,:).').';
+    W_LS_l(k,:) = HL(k,:) * regInvY.';
+    W_LS_r(k,:) = HR(k,:) * regInvY.';
 
     % calculate negative frequencies (important in case of complex-valued
     % SHs)
     if k > 1 && k < numPosFreqs
-        pwGridNeg = smairMat(:,:,end-k+2) * conj(YHi);
+        pwGridNeg = smairMat(:,:,end-k+2) * YHi.';
         [UNeg,SNeg,VNeg] = svd(pwGridNeg.','econ');
         sNeg = diag(SNeg);
         sNeg = 1 ./ max(sNeg, svdRegulConst * max(sNeg)); % regularize
         regInvYNeg = (VNeg .* sNeg.') * UNeg';
 
-        W_LS_l(end-k+2,:) = (regInvYNeg * conj(HL(k,:)).').';
-        W_LS_r(end-k+2,:) = (regInvYNeg * conj(HR(k,:)).').';
+        W_LS_l(end-k+2,:) = conj(HL(k,:)) * regInvYNeg.';
+        W_LS_r(end-k+2,:) = conj(HR(k,:)) * regInvYNeg.';
     end
     
     if k >= k_cut

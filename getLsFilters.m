@@ -22,8 +22,8 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 shDefinition = 'complex'; % real or complex
 
 Y = getSH(order, [hrirGridAziRad,hrirGridZenRad], shDefinition);
-pinvY = pinv(Y);
+pinvY = pinv(Y');
 
-wLsL = hL * pinvY';
-wLsR = hR * pinvY';
+wLsL = hL * pinvY;
+wLsR = hR * pinvY;
 
