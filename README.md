@@ -18,6 +18,9 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-31
+- Update functions to compute 0 Hz bin not separately</br>
+(this causes the resulting eMagLS and eMagLS2 rendering filters to be different)</br>
+(therefore the reference for eMagLS and eMagLS2 rendering filters are updated for verification)
 - Update `testEMagLs.m` to verify the SH convention "wikipedia" against the "real" reference
 - Update `testEMagLs.m` to export binaural renderings as FLAC with 24bit resolution
 ### 2022-05-19

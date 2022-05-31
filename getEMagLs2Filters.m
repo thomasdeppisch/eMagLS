@@ -86,7 +86,7 @@ smairMat = getSMAIRMatrix(params);
 
 W_MLS_l = zeros(numPosFreqs, numMics);
 W_MLS_r = zeros(numPosFreqs, numMics);
-for k = 2:numPosFreqs % leave out first bin, here bn = 0
+for k = 1:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
     [U,S,V] = svd(pwGrid.', 'econ');
     s = diag(S);
@@ -94,11 +94,10 @@ for k = 2:numPosFreqs % leave out first bin, here bn = 0
     Y_reg_inv = conj(U) * (s .* V.');
 
     if k >= k_cut % magnitude least-squares
-        phiMagLsSmaL = angle(W_MLS_l(k-1,:) * pwGrid);
-        phiMagLsSmaR = angle(W_MLS_r(k-1,:) * pwGrid);
-
-        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phiMagLsSmaL) * Y_reg_inv;
-        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phiMagLsSmaR) * Y_reg_inv;
+        phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
+        phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
+        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_reg_inv;
+        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
     else % least-squares
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
         W_MLS_r(k,:) = HR(k,:) * Y_reg_inv;
@@ -145,13 +144,7 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-% DC extension
-W_MLS_l(1, :) = W_MLS_l(2, :);
-W_MLS_r(1, :) = W_MLS_r(2, :);
-
 % fix spectrum (force real against rounding errors)
-W_MLS_l(1, :) = real(W_MLS_l(1, :)); % DC bin
-W_MLS_r(1, :) = real(W_MLS_r(1, :));
 if ~mod(nfft, 2) % is even
     W_MLS_l(end, :) = real(W_MLS_l(end, :)); % Nyquist bin
     W_MLS_r(end, :) = real(W_MLS_r(end, :));
