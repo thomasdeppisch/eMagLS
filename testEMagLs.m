@@ -196,8 +196,8 @@ end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
-E_conj = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition)';
-shRecording = smaRecording * pinv(E_conj);
+E = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition);
+shRecording = smaRecording * pinv(E).';
 fprintf('done.\n');
 
 % parameters for the radial filter
@@ -247,26 +247,26 @@ fprintf('done.\n\n');
 %% export binaural renderings
 [~, smaRecordingFile, ~] = fileparts(smaRecordingFile);
 if DO_EXPORT_RENDERING
-    audioFiles = sprintf('%s_%s.wav', smaRecordingFile, refStr);
+    audioFiles = sprintf('%s_%s.flac', smaRecordingFile, refStr);
 
     audioFile = sprintf(audioFiles, 'LS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binLs, fs);
+    audiowrite(audioFile, binLs, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'MagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binMls, fs);
+    audiowrite(audioFile, binMls, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'eMagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binEMls, fs);
+    audiowrite(audioFile, binEMls, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, 'eMagLS2');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binEMls2, fs);
+    audiowrite(audioFile, binEMls2, fs, 'BitsPerSample', 24);
     fprintf('done.\n\n');
 
     clear audioFiles audioFile;
