@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-05-31
+- Update `testEMagLs.m` to verify the SH convention "wikipedia" against the "real" reference
 - Update `testEMagLs.m` to export binaural renderings as FLAC with 24bit resolution
 ### 2022-05-19
 - Update `binauralDecode.m` to warn when rendering discards imaginary signal parts (may occur for complex SH basis functions)

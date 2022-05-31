@@ -111,8 +111,14 @@ fprintf('done.\n\n');
 
 %% verify rendering filters against provided reference
 [hrirPath, refFiles, ~] = fileparts(hrirFile);
-refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%s_%%s', ...
-    refFiles, filterLen, size(micGridAziRad, 1), shOrder, shDefinition);
+if strcmpi(shDefinition, 'wikipedia')
+     % evaluate against 'real' reference as they should be identical
+    refShDefinition = 'real';
+else
+    refShDefinition = shDefinition;
+end
+refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%%s_%%s', ...
+    refFiles, filterLen, size(micGridAziRad, 1), shOrder);
 refFiles = fullfile(hrirPath, [refStr, '.mat']);
 clear hrirPath;
 
@@ -123,7 +129,7 @@ if DO_VERIFY_REFERENCE
         try
             % TODO: This verification could also check the match of other parameters
     
-            refFile = sprintf(refFiles, 'LS');
+            refFile = sprintf(refFiles, refShDefinition, 'LS');
             fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wLsL, ref.wLsL);
@@ -131,7 +137,7 @@ if DO_VERIFY_REFERENCE
             clear refFile ref;
             fprintf('done.\n');
         
-            refFile = sprintf(refFiles, 'MagLS');
+            refFile = sprintf(refFiles, refShDefinition, 'MagLS');
             fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wMlsL, ref.wMlsL);
@@ -139,7 +145,7 @@ if DO_VERIFY_REFERENCE
             clear refFile ref;
             fprintf('done.\n');
         
-            refFile = sprintf(refFiles, 'eMagLS');
+            refFile = sprintf(refFiles, refShDefinition, 'eMagLS');
             fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wEMlsL, ref.wEMlsL);
@@ -147,7 +153,7 @@ if DO_VERIFY_REFERENCE
             clear refFile ref;
             fprintf('done.\n');
         
-            refFile = sprintf(refFiles, 'eMagLS2');
+            refFile = sprintf(refFiles, refShDefinition, 'eMagLS2');
             fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wEMls2L, ref.wEMls2L);
@@ -167,25 +173,25 @@ end
 
 %% replace reference filters
 if DO_OVERRIDE_REFERENCE
-    refFile = sprintf(refFiles, 'LS'); %#ok<*UNRCH> 
+    refFile = sprintf(refFiles, refShDefinition, 'LS'); %#ok<*UNRCH> 
     fprintf('Exporting LS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wLsL', 'wLsR', 'hrirGridAziRad', 'hrirGridZenRad', 'shOrder', '-v7');
     fprintf('done.\n');
     
-    refFile = sprintf(refFiles, 'MagLS');
+    refFile = sprintf(refFiles, refShDefinition, 'MagLS');
     fprintf('Exporting MagLS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wMlsL', 'wMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
         'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
     fprintf('done.\n');
     
-    refFile = sprintf(refFiles, 'eMagLS');
+    refFile = sprintf(refFiles, refShDefinition, 'eMagLS');
     fprintf('Exporting eMagLS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wEMlsL', 'wEMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
         'micRadius', 'micGridAziRad', 'micGridZenRad', ...
         'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
     fprintf('done.\n');
     
-    refFile = sprintf(refFiles, 'eMagLS2');
+    refFile = sprintf(refFiles, refShDefinition, 'eMagLS2');
     fprintf('Exporting eMagLS2 rendering filters to "%s" ... ', refFile);
     save(refFile, 'wEMls2L', 'wEMls2R', 'hrirGridAziRad', 'hrirGridZenRad', ...
         'micRadius', 'micGridAziRad', 'micGridZenRad', ...
@@ -249,22 +255,22 @@ fprintf('done.\n\n');
 if DO_EXPORT_RENDERING
     audioFiles = sprintf('%s_%s.flac', smaRecordingFile, refStr);
 
-    audioFile = sprintf(audioFiles, 'LS');
+    audioFile = sprintf(audioFiles, shDefinition, 'LS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
     audiowrite(audioFile, binLs, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
-    audioFile = sprintf(audioFiles, 'MagLS');
+    audioFile = sprintf(audioFiles, shDefinition, 'MagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
     audiowrite(audioFile, binMls, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
-    audioFile = sprintf(audioFiles, 'eMagLS');
+    audioFile = sprintf(audioFiles, shDefinition, 'eMagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
     audiowrite(audioFile, binEMls, fs, 'BitsPerSample', 24);
     fprintf('done.\n');
 
-    audioFile = sprintf(audioFiles, 'eMagLS2');
+    audioFile = sprintf(audioFiles, shDefinition, 'eMagLS2');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
     audiowrite(audioFile, binEMls2, fs, 'BitsPerSample', 24);
     fprintf('done.\n\n');
