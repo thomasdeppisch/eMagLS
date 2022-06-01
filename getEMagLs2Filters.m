@@ -93,14 +93,19 @@ for k = 1:numPosFreqs
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
 
-    if k >= k_cut % magnitude least-squares
-        phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
-        phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_reg_inv;
-        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
-    else % least-squares
+    if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
         W_MLS_r(k,:) = HR(k,:) * Y_reg_inv;
+    else % magnitude least-squares above cut
+        phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
+        phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
+        if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
+            W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
+            W_MLS_r(k,:) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
+        else
+            W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_reg_inv;
+            W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
+        end
     end
 end
 
@@ -144,15 +149,9 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-% fix spectrum (force real against rounding errors)
-if ~mod(nfft, 2) % is even
-    W_MLS_l(end, :) = real(W_MLS_l(end, :)); % Nyquist bin
-    W_MLS_r(end, :) = real(W_MLS_r(end, :));
-end
-
 % transform into time domain
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
+W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
+W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
 if isreal(Y_conj)

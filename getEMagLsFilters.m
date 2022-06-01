@@ -61,8 +61,8 @@ numPosFreqs = length(f);
 % zero pad and remove group delay (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = grpdelay(hL * real(Y_Lo_pinv(:, 1)), 1, f, fs);
-grpDR = grpdelay(hR * real(Y_Lo_pinv(:, 1)), 1, f, fs);
+grpDL = grpdelay(hL * Y_Lo_pinv(:, 1), 1, f, fs);
+grpDR = grpdelay(hR * Y_Lo_pinv(:, 1), 1, f, fs);
 hL = circshift(hL, -round(median(grpDL)));
 hR = circshift(hR, -round(median(grpDR)));
 
@@ -86,23 +86,47 @@ params.shDefinition = shDefinition;
 params.shFunction = shFunction;
 smairMat = getSMAIRMatrix(params);
 
-W_MLS_l = zeros(numPosFreqs, numHarmonics);
-W_MLS_r = zeros(numPosFreqs, numHarmonics);
+W_MLS_l = zeros(nfft, numHarmonics);
+W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
+    % positive frequencies
     pwGrid = smairMat(:,:,k) * Y_Hi_conj;
     [U,S,V] = svd(pwGrid.', 'econ');
     s = diag(S);
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
 
-    if k >= k_cut % magnitude least-squares
-        phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
-        phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_reg_inv;
-        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
-    else % least-squares
+    if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
         W_MLS_r(k,:) = HR(k,:) * Y_reg_inv;
+    else % magnitude least-squares above cut
+        phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
+        phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
+        if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
+            W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
+            W_MLS_r(k,:) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
+        else
+            W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_reg_inv;
+            W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
+        end
+    end
+
+    if ~isreal(Y_Hi_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
+        % negative frequencies below cut in case of complex-valued SHs
+        k_neg = nfft-k+2;
+        pwGrid = smairMat(:,:,k_neg) * Y_Hi_conj;
+        [U,S,V] = svd(pwGrid.', 'econ');
+        s = diag(S);
+        s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
+        Y_reg_inv = conj(U) * (s .* V.');
+
+        if k < k_cut % least-squares below cut
+            W_MLS_l(k_neg,:) = HL(k_neg,:) * Y_reg_inv;
+            W_MLS_r(k_neg,:) = HR(k_neg,:) * Y_reg_inv;
+        else % magnitude least-squares above cut
+            W_MLS_l(k_neg,:) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_reg_inv;
+            W_MLS_r(k_neg,:) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_reg_inv;
+        end
     end
 end
 
@@ -147,15 +171,11 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-% fix spectrum (force real against rounding errors)
-if ~mod(nfft, 2) % is even
-    W_MLS_l(end, :) = real(W_MLS_l(end, :)); % Nyquist bin
-    W_MLS_r(end, :) = real(W_MLS_r(end, :));
-end
-
 % transform into time domain
-W_MLS_l = [W_MLS_l; flipud(conj(W_MLS_l(2:end-1, :)))];
-W_MLS_r = [W_MLS_r; flipud(conj(W_MLS_r(2:end-1, :)))];
+if isreal(Y_Hi_conj)
+   W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
+   W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
+end
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
 if isreal(Y_Hi_conj)

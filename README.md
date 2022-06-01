@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-06-01
+- Update functions to work for complex SH conventions by computing double-sided spectra (required in `getMagLsFilters.m` and `getEMagLsFilters.m` but not in `getEMagLs2Filters.m`)
 - Update `testEMagLs.m` to alternatively evaluate spectral difference in verification of rendering filters against provided reference
 - Update functions to compute 0 Hz bin not separately</br>
 (this causes the resulting eMagLS and eMagLS2 rendering filters to be different)</br>

@@ -100,8 +100,8 @@ function [smairMat, params] = getSMAIRMatrix(params)
     numMics = size(params.smaDesignAziZenRad, 1);
 
     % include actual microphone processing to simulate aliasing
-    Y_Hi_conj = conj(params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition));
-    Y_Lo_pinv = pinv(Y_Hi_conj(:, 1:numShsOut));
+    Y_Hi = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition);
+    Y_Lo_pinv = pinv(Y_Hi(:, 1:numShsOut));
 
     % set radial filtering for waveModel + arrayType combination
     if strcmpi(params.waveModel, 'pointSource')
@@ -113,17 +113,26 @@ function [smairMat, params] = getSMAIRMatrix(params)
     % reasonable). Without the minus, the resulting BRIRs are inverted.
     bnAll = -sphModalCoeffs(params.simulationOrder, 2*pi*f/C * params.smaRadius, ...
         params.arrayType, params.dirCoeff).';
-    if ~mod(nfft, 2) % is even
-        bnAll(:, end) = real(bnAll(:, end)); % Nyquist bin
-    end
 
-    pMics = zeros(numMics, numShsSimulation, numPosFreqs);
-    pN = zeros(numShsOut, numShsSimulation, numPosFreqs);
+    pMics = zeros(numMics, numShsSimulation, nfft);
+    pN = zeros(numShsOut, numShsSimulation, nfft);
     for k = 1:numPosFreqs
         Bn = diag(sh_repToOrder(bnAll(:,k)));
-        pMics(:,:,k) = Y_Hi_conj * Bn;
+        pMics(:,:,k) = Y_Hi * Bn;
+        if k == numPosFreqs && ~mod(nfft, 2) % is even
+            pMics(:,:,k) = Y_Hi * real(Bn);
+        elseif ~isreal(Y_Hi) && k > 1
+            k_neg = nfft-k+2;
+            pMics(:,:,k_neg) = Y_Hi * conj(Bn);
+        end
+
         if ~params.returnRawMicSigs
             pN(:,:,k) = Y_Lo_pinv * pMics(:,:,k);
+            if k == numPosFreqs && ~mod(nfft, 2) % is even
+                pN(:,:,k) = Y_Lo_pinv * real(pMics(:,:,k));
+            elseif ~isreal(Y_Hi) && k > 1
+                pN(:,:,k_neg) = Y_Lo_pinv * pMics(:,:,k_neg);
+            end
         end
     end
 
@@ -132,11 +141,19 @@ function [smairMat, params] = getSMAIRMatrix(params)
     else
         smairMat = pN;
         
-        % apply radial filtering
-        radFilts = getRadialFilter(params).'; % may be 'none'
-        for k = 1:numPosFreqs
-            BnTi = diag(sh_repToOrder(radFilts(:,k)));
-            smairMat(:,:,k) = BnTi * smairMat(:,:,k);
+        if ~strcmpi(params.radialFilter, 'none')
+            % apply radial filtering
+            radFilts = getRadialFilter(params).';
+            for k = 1:numPosFreqs
+                BnTi = diag(sh_repToOrder(radFilts(:,k)));
+                smairMat(:,:,k) = BnTi * smairMat(:,:,k);
+                if k == numPosFreqs && ~mod(nfft, 2) % is even
+                    smairMat(:,:,k) = real(BnTi) * smairMat(:,:,k);
+                elseif ~isreal(Y_Hi) && k > 1
+                    k_neg = nfft-k+2;
+                    smairMat(:,:,k_neg) = conj(BnTi) * smairMat(:,:,k_neg);
+                end
+            end
         end
     end
 end
