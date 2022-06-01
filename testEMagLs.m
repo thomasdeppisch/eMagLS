@@ -253,26 +253,26 @@ fprintf('done.\n\n');
 %% export binaural renderings
 [~, smaRecordingFile, ~] = fileparts(smaRecordingFile);
 if DO_EXPORT_RENDERING
-    audioFiles = sprintf('%s_%s.flac', smaRecordingFile, refStr);
+    audioFiles = sprintf('%s_%s.wav', smaRecordingFile, refStr);
 
     audioFile = sprintf(audioFiles, shDefinition, 'LS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binLs, fs, 'BitsPerSample', 24);
+    audiowrite(audioFile, binLs, fs, 'BitsPerSample', 64);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, shDefinition, 'MagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binMls, fs, 'BitsPerSample', 24);
+    audiowrite(audioFile, binMls, fs, 'BitsPerSample', 64);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, shDefinition, 'eMagLS');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binEMls, fs, 'BitsPerSample', 24);
+    audiowrite(audioFile, binEMls, fs, 'BitsPerSample', 64);
     fprintf('done.\n');
 
     audioFile = sprintf(audioFiles, shDefinition, 'eMagLS2');
     fprintf('Exporting LS binaural rendering to "%s" ... ', audioFile);
-    audiowrite(audioFile, binEMls2, fs, 'BitsPerSample', 24);
+    audiowrite(audioFile, binEMls2, fs, 'BitsPerSample', 64);
     fprintf('done.\n\n');
 
     clear audioFiles audioFile;

@@ -18,13 +18,13 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-06-01
+- Update `testEMagLs.m` to export binaural renderings as WAV with 64bit resolution
 - Update functions to work for complex SH conventions by computing double-sided spectra (required in `getMagLsFilters.m` and `getEMagLsFilters.m` but not in `getEMagLs2Filters.m`)
 - Update `testEMagLs.m` to alternatively evaluate spectral difference in verification of rendering filters against provided reference
 - Update functions to compute 0 Hz bin not separately</br>
 (this causes the resulting eMagLS and eMagLS2 rendering filters to be different)</br>
 (therefore the reference for eMagLS and eMagLS2 rendering filters are updated for verification)
 - Update `testEMagLs.m` to verify the SH convention "wikipedia" against the "real" reference
-- Update `testEMagLs.m` to export binaural renderings as FLAC with 24bit resolution
 ### 2022-05-19
 - Update `binauralDecode.m` to warn when rendering discards imaginary signal parts (may occur for complex SH basis functions)
 - Update `testEMagLs.m` to use a different SH basis implementation more easily
