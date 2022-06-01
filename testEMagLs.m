@@ -202,8 +202,8 @@ end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
-E = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition);
-shRecording = smaRecording * pinv(E).';
+E = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition).';
+shRecording = smaRecording * pinv(E);
 fprintf('done.\n');
 
 % parameters for the radial filter
@@ -337,16 +337,29 @@ function Y = getSH_SFS(order, gridAziZenRad, shDefinition) %#ok<DEFNU>
     end
 end
 
-function assertAllClose(x1, x2, norm_tol)
+function assertAllClose(x1, x2, norm_tol, spec_tol_dB)
+    if nargin < 4; spec_tol_dB = 1; end
     if nargin < 3; norm_tol = 1e-13; end
 
     norm_diff = max(abs(x1 - x2), [], 'all') / max(abs([x1, x2]), [], 'all');
     if norm_diff == 0
-        fprintf('no difference ... ');
+        fprintf('no sample difference ... ');
     elseif norm_diff < norm_tol
-        fprintf('%.3g max. norm. abs. difference ... ', norm_diff);
+        fprintf('%.3g max. norm. abs. sample difference ... ', norm_diff);
     else
-        error('Maximum normalized absolute mismatch of %.3g (greater than %.3g tolarance).', ...
-            norm_diff, norm_tol);
+        % compute spectral difference
+        spec_diff_dB = mag2db(abs(fft(x1) ./ fft(x2)));
+        % ignore 0 Hz bin
+        spec_diff_dB = max(spec_diff_dB(2:end, :), [], 'all');
+
+        if spec_diff_dB < 1e-3
+            fprintf('sample but no spec. difference ... ');
+        elseif spec_diff_dB < spec_tol_dB
+            fprintf('sample and %.3f dB max. spec. difference ... ', spec_diff_dB);
+        else
+            error(['Maximum spectral mismatch of %.3f dB (greater than %.3f dB tolarance) ', ...
+                'and normalized absolute sample mismatch of %.3g (greater than %.3g tolarance).'], ...
+                spec_diff_dB, spec_tol_dB, norm_diff, norm_tol);
+        end
     end
 end
