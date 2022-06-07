@@ -125,6 +125,10 @@ end
 refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%%s_%%s', ...
     refFiles, filterLen, size(micGridAziRad, 1), shOrder);
 refFiles = fullfile(hrirPath, [refStr, '.mat']);
+if strcmp(filesep, '\')
+    % make following sprintfs work on Windows (file paths work regardless)
+    refFiles = strrep(refFiles, filesep, '/');
+end
 clear hrirPath;
 
 if DO_VERIFY_REFERENCE
