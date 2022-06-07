@@ -32,21 +32,22 @@ if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN    = 2048; % maxium length of result in samples
-F_CUT           = 2000; % transition frequency in Hz
 REL_FADE_LEN    = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
+
+nfft = max(2*len, NFFT_MAX_LEN);
+f = linspace(0, fs/2, nfft/2+1).';
+numPosFreqs = length(f);
+f_cut = 500 * order; % from N > k
+k_cut = ceil(f_cut / f(2));
+fprintf('with transition at %d Hz ... ', ceil(f_cut));
 
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
-
-nfft = max(2*len, NFFT_MAX_LEN);
-f = linspace(0, fs/2, nfft/2+1).';
-k_cut = ceil(F_CUT/f(2));
-numPosFreqs = length(f);
 
 % zero pad and remove group delay (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;

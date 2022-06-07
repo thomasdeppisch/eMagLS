@@ -20,7 +20,9 @@ filterLen = 512;
 applyDiffusenessConst = false; % for MagLS, eMagLS and eMagLS2
 
 shFunction   = @getSH; % from Spherical-Harmonic-Transform toolbox
-shDefinition = 'real'; % or e.g. 'complex' # TODO: Fix complex rendering
+shDefinition = 'real';
+% shDefinition = 'complex';
+
 % % An alternative version which uses a different SH basis convention and implementation
 % shFunction   = @getSH_SFS; % from Spherical-Harmonic-Transform toolbox
 % shDefinition = 'wikipedia'; % or e.g. 'complex'
@@ -87,17 +89,20 @@ clear smaFs smaRecordingLength;
 fprintf('done.\n\n');
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
-fprintf('Computing LS rendering filters ... with %d samples ... ', size(hL, 1));
+fprintf('Computing LS rendering filters ... at N=%d ... with %d samples ... ', ...
+    shOrder, size(hL, 1));
 [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder, ...
     shDefinition, shFunction);
 fprintf('done.\n');
 
-fprintf('Computing MagLS rendering filters ... with %d samples ... ', filterLen);
+fprintf('Computing MagLS rendering filters ... at N=%d ... with %d samples ... ', ...
+    shOrder, filterLen);
 [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     shOrder, fs, filterLen, applyDiffusenessConst, shDefinition, shFunction);
 fprintf('done.\n');
 
-fprintf('Computing eMagLS rendering filters ... with %d samples ... ', filterLen);
+fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
+    shOrder, filterLen);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
     applyDiffusenessConst, shDefinition, shFunction);
@@ -105,7 +110,7 @@ fprintf('done.\n');
 
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, fs, filterLen, ...
+    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
     applyDiffusenessConst, shDefinition, shFunction);
 fprintf('done.\n\n');
 
@@ -163,6 +168,7 @@ if DO_VERIFY_REFERENCE
         catch ME
             if strcmp(ME.identifier, 'MATLAB:load:couldNotReadFile')
                 warning(ME.identifier, '\nskipped (%s).', ME.message);
+                clear ME;
             else
                 rethrow(ME);
             end
@@ -201,7 +207,7 @@ if DO_OVERRIDE_REFERENCE
 end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
-fprintf('Transforming recording into SH domain at N=%d ... ', shOrder);
+fprintf('Transforming recording into SH domain ... at N=%d ... ', shOrder);
 E = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition).';
 shRecording = smaRecording * pinv(E);
 fprintf('done.\n');

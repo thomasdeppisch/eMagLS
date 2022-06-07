@@ -17,7 +17,10 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
-### 2022-06-01
+### 2022-06-07
+- Update `getMagLsFilters.m`, `getEMagLsFilters.m` and `getEMagLs2Filters.m` to use a transition frequency of 500 Hz times SH order instead of always 2000 Hz</br>
+(changes the signature of `getEMagLs2Filters.m` to require the desired SH order)</br>
+(yields no changes for the example Eigenmike configuration)
 - Update `testEMagLs.m` to export binaural renderings as WAV with 64bit resolution
 - Update functions to work for complex SH conventions by computing double-sided spectra (required in `getMagLsFilters.m` and `getEMagLsFilters.m` but not in `getEMagLs2Filters.m`)
 - Update `testEMagLs.m` to alternatively evaluate spectral difference in verification of rendering filters against provided reference

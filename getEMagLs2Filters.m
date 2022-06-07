@@ -1,8 +1,8 @@
 function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst, ...
+    micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
     shDefinition, shFunction)
 % [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, micGridZenRad, fs, len, applyDiffusenessConst, ...
+%     micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction)
 %
 % This function returns eMagLS2 binaural decoding filters.
@@ -19,8 +19,9 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 % micRadius              .. radius of SMA
 % micGridAziRad          .. SMA grid azimuth angles in radians
 % micGridZenRad          .. SMA grid zenith angles in radians
+% order                  .. SH order of SMA (relevant for eMagLS transition frequency)
 % fs                     .. sampling frequency in Hz
-% len                    .. desired length of magLS filters
+% len                    .. desired length of eMagLS2 filters
 % applyDiffusenessConst  .. {true, false}, apply diffuseness constraint,
 %                           see Zaunschirm, Schoerkhuber, Hoeldrich,
 %                           "Binaural rendering of Ambisonic signals by head-related impulse
@@ -40,21 +41,22 @@ NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_ORDER        = 32; % see `getSMAIRMatrix()`
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
-F_CUT                   = 2000; % transition frequency in Hz
 SVD_REGUL_CONST         = 0.01;
 REL_FADE_LEN            = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
 
+nfft = max(2*len, NFFT_MAX_LEN);
+f = linspace(0, fs/2, nfft/2+1).';
+numPosFreqs = length(f);
+f_cut = 500 * order; % from N > k
+k_cut = ceil(f_cut / f(2));
+fprintf('with transition at %d Hz ... ', ceil(f_cut));
+
 numMics = length(micGridAziRad);
 numDirections = size(hL, 2);
 fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_conj = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
-
-nfft = max(2*len, NFFT_MAX_LEN);
-f = linspace(0, fs/2, nfft/2+1).';
-k_cut = ceil(F_CUT/f(2));
-numPosFreqs = length(f);
 
 % zero pad and remove group delay (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
