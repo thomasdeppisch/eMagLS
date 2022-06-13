@@ -3,9 +3,10 @@ function sigFiltered = applyRadialFilter(inSig, params)
 % Thomas Deppisch, 2021
 
 radFilts = getRadialFilter(params);
-% to time domain
 radFilts(isnan(radFilts)) = 0;
-irRadFilter = ifft([radFilts; conj(flipud(radFilts(2:end-1,:)))], params.nfft, 1, 'symmetric');
+% to time domain
+irRadFilter = ifft([radFilts; conj(flipud(radFilts(2:end-1,:)))]);
+% make causal
 irRadFilter = circshift(irRadFilter, params.nfft/2);
 
 %% apply filter
