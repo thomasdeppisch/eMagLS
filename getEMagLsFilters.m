@@ -38,7 +38,6 @@ if nargin < 13; shFunction = @getSH; end
 if nargin < 12 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium length of result in samples
-SIMULATION_ORDER        = 32; % see `getSMAIRMatrix()`
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -53,10 +52,26 @@ f_cut = 500 * order; % from N > k
 k_cut = ceil(f_cut / f(2));
 fprintf('with transition at %d Hz ... ', ceil(f_cut));
 
+fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
+% simulate plane wave impinging on SMA
+params.order = order;
+params.fs = fs;
+params.irLen = nfft;
+params.oversamplingFactor = 1;
+params.simulateAliasing = true;
+params.radialFilter = 'none';
+params.smaRadius = micRadius;
+params.smaDesignAziZenRad = [micGridAziRad, micGridZenRad];
+params.waveModel = SIMULATION_WAVE_MODEL;
+params.arrayType = SIMULATION_ARRAY_TYPE;
+params.shDefinition = shDefinition;
+params.shFunction = shFunction;
+smairMat = getSMAIRMatrix(params);
+simulationOrder = sqrt(size(smairMat, 2)) - 1;
+
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
-fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-Y_Hi_conj = shFunction(SIMULATION_ORDER, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
+Y_Hi_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_Lo_pinv = pinv(Y_Hi_conj(1:numHarmonics, :));
 
 % zero pad and remove group delay (alternative to applying global phase delay later)
@@ -70,22 +85,6 @@ hR = circshift(hR, -round(median(grpDR)));
 % transform into frequency domain
 HL = fft(hL);
 HR = fft(hR);
-
-% simulate plane wave impinging on SMA 
-params.order = order;
-params.fs = fs;
-params.irLen = nfft;
-params.oversamplingFactor = 1;
-params.simulateAliasing = true;
-params.simulationOrder = SIMULATION_ORDER;
-params.radialFilter = 'none';
-params.smaRadius = micRadius;
-params.smaDesignAziZenRad = [micGridAziRad, micGridZenRad];
-params.waveModel = SIMULATION_WAVE_MODEL;
-params.arrayType = SIMULATION_ARRAY_TYPE;
-params.shDefinition = shDefinition;
-params.shFunction = shFunction;
-smairMat = getSMAIRMatrix(params);
 
 W_MLS_l = zeros(nfft, numHarmonics);
 W_MLS_r = zeros(nfft, numHarmonics);

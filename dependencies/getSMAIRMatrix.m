@@ -19,7 +19,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % returnRawDiaphSigs            .. only return mic signals without SH transform at the output
 % 
 % Further parameters:
-% smaDesignAziZenRad, order, simulationOrder, fs, smaRadius, sourceDist,
+% smaDesignAziZenRad, order, fs, smaRadius, sourceDist,
 % noiseGainDb, oversamplingFactor, irLen, dirCoeff, shDefinition, shFunction
 %
 % Most parameters have default options! (default is a plane-wave em32 simulation)
@@ -51,9 +51,6 @@ function [smairMat, params] = getSMAIRMatrix(params)
     end
     if (nargin < 1 || ~isfield(params,'radialFilter'))
         params.radialFilter = 'regul';
-    end
-    if (nargin < 1 || ~isfield(params,'simulationOrder'))
-        params.simulationOrder = 32;
     end
     if (nargin < 1 || ~isfield(params,'sourceDist'))
         params.sourceDist = 2;
@@ -94,13 +91,16 @@ function [smairMat, params] = getSMAIRMatrix(params)
     nfft = params.oversamplingFactor * params.irLen;
     f = linspace(0, params.fs/2, nfft/2+1).';
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
+    
+    % determine simulation order based on Rafaely aliasing frequency 
+    simulationOrder = ceil(params.fs * pi * params.smaRadius / C);
+    numShsSimulation = (simulationOrder+1)^2;
     numShsOut = (params.order+1)^2;
-    numShsSimulation = (params.simulationOrder+1)^2;
     numPosFreqs = length(f);
     numMics = size(params.smaDesignAziZenRad, 1);
 
     % include actual microphone processing to simulate aliasing
-    Y_Hi = params.shFunction(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition);
+    Y_Hi = params.shFunction(simulationOrder, params.smaDesignAziZenRad, params.shDefinition);
     Y_Lo_pinv = pinv(Y_Hi(:, 1:numShsOut));
 
     % set radial filtering for waveModel + arrayType combination
@@ -111,7 +111,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
     % TODO: It is not quite clear why there is a minus required here for
     % the rendered BRIRs to start with a positive peak (which seems
     % reasonable). Without the minus, the resulting BRIRs are inverted.
-    bnAll = -sphModalCoeffs(params.simulationOrder, 2*pi*f/C * params.smaRadius, ...
+    bnAll = -sphModalCoeffs(simulationOrder, 2*pi*f/C * params.smaRadius, ...
         params.arrayType, params.dirCoeff).';
 
     pMics = zeros(numMics, numShsSimulation, nfft);
