@@ -2,7 +2,7 @@
 The End-to-End Magnitude Least Squares Binaural Renderer for Spherical Microphone Array Signals.
 
 This repository contains MATLAB functions to obtain binaural rendering filters for the least squares (LS) method, the magnitude least squares (MagLS) method, and the newly proposed End-to-End MagLS methods using SH-domain processing (eMagLS) and using (raw) microphone signals (eMagLS2).
-For more information and if you want to reference the code please refer to
+For more information and if you want to reference the code please [refer to the publication](https://research.chalmers.se/publication/528436/file/528436_Fulltext.pdf)
    
    ```
    T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
