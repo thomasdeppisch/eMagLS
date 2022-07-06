@@ -27,7 +27,7 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %
 % Thomas Deppisch, 2021
 
-shDefinition = 'complex'; % real or complex
+shDefinition = 'real'; % real or complex
 
 if (len < size(hL,1))
     error('len too short')

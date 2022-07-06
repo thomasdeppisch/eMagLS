@@ -41,7 +41,7 @@ fs = double(HRIR_L2702.fs);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, micRadius, micGridAziRad, micGridZenRad, fs, filterLen, false);
 
 %% sh transform and radial filter (for LS and conventional MagLS)
-E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'complex');
+E = getSH(shOrder, [micGridAziRad, micGridZenRad], 'real');
 shRecording = smaRecording * pinv(E).';
 
 % parameters for the radial filter
@@ -77,16 +77,16 @@ eMagLs2Bin = binauralDecode(smaRecording, fs, wEMls2L, wEMls2R, fs);
 
 % LS
 disp('Playing back LS rendering')
-sound(real(lsBin)./max(abs(lsBin(:))) * 0.5, fs);
+sound(lsBin./max(abs(lsBin(:))) * 0.5, fs);
 pause(8)
 % MagLS
 disp('Playing back MagLS rendering')
-sound(real(magLsBin)./max(abs(magLsBin(:))) * 0.5, fs);
+sound(magLsBin./max(abs(magLsBin(:))) * 0.5, fs);
 pause(8)
 % eMagLS
 disp('Playing back eMagLS rendering')
-sound(real(eMagLsBin)./max(abs(eMagLsBin(:))) * 0.5, fs);
+sound(eMagLsBin./max(abs(eMagLsBin(:))) * 0.5, fs);
 pause(8)
 % eMagLS2
 disp('Playing back eMagLS2 rendering')
-sound(real(eMagLs2Bin)./max(abs(eMagLs2Bin(:))) * 0.5, fs);
+sound(eMagLs2Bin./max(abs(eMagLs2Bin(:))) * 0.5, fs);
