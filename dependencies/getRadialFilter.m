@@ -2,6 +2,18 @@ function radFilts = getRadialFilter(params)
 % return radial filters
 % Thomas Deppisch, 2021
 
+if (nargin < 1 || ~isfield(params,'radialFilter'))
+    params.radialFilter = 'tikhonov';
+end
+if (nargin < 1 || ~isfield(params,'waveModel'))
+    params.waveModel = 'planeWave';
+end
+if (nargin < 1 || ~isfield(params,'oversamplingFactor'))
+    params.oversamplingFactor = 2;
+end
+if (nargin < 1 || ~isfield(params,'irLen'))
+    params.irLen = 256;
+end
 if (nargin < 1 || ~isfield(params,'dirCoeff'))
         params.dirCoeff = 0;
 end
