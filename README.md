@@ -18,6 +18,8 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-09-19
+- Update `getEMagLsFiltersEMA.m` to remove unused array grid zenith coordinates</br>
+(add non-functioning example call to `testEMagLs.m`)
 - Add `getEMagLsFiltersEMA.m` to generate eMagLS rendering filters for equatorial microphone arrays (EMA)</br>
 (add the respective `getCH.m` and `ch_stackOrder.m` functions)</br>
 (this is does not have an example configuration in `testEMagLs.m` yet)</br>

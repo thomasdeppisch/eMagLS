@@ -1,8 +1,8 @@
 function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
+    micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
     shDefinition, shFunction, chFunction)
 % [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
+%     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
 % This function returns eMagLS binaural decoding filters.
@@ -18,7 +18,6 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)
 % micRadius              .. radius of SMA
 % micGridAziRad          .. SMA grid azimuth angles in radians
-% micGridZenRad          .. SMA grid zenith angles in radians
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of eMagLS filters
@@ -35,9 +34,9 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 %
 % Thomas Deppisch, 2021
 
-if nargin < 14; shFunction = @getCH; end
-if nargin < 13; shFunction = @getSH; end
-if nargin < 12 || isempty(shDefinition); shDefinition = 'real'; end
+if nargin < 13; shFunction = @getCH; end
+if nargin < 12; shFunction = @getSH; end
+if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
@@ -46,7 +45,6 @@ SVD_REGUL_CONST         = 0.01;
 REL_FADE_LEN            = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
-assert(all(micGridZenRad == pi/2), 'microphone grid is not equatorial');
 
 nfft = max(2*len, NFFT_MAX_LEN);
 f = linspace(0, fs/2, nfft/2+1).';
@@ -65,7 +63,7 @@ params.oversamplingFactor = 1;
 params.simulateAliasing = true;
 params.radialFilter = 'none';
 params.smaRadius = micRadius;
-params.smaDesignAziZenRad = [micGridAziRad, micGridZenRad];
+params.smaDesignAziZenRad = [micGridAziRad, ones(size(micGridAziRad)) * pi/2];
 params.waveModel = SIMULATION_WAVE_MODEL;
 params.arrayType = SIMULATION_ARRAY_TYPE;
 params.shDefinition = shDefinition;
