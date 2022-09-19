@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-09-19
+- Add reference rendering filters for complex SH convention for verification
 - Update `getMagLsFilters.m`, `getEMagLsFilters.m` and `getEMagLs2Filters.m` to use complex delay with subsample precision and restore original inter-aural group delay difference after magnitude least-squares optimization</br>
 (this causes the resulting MagLS, eMagLS and eMagLS2 rendering filters to be different in a non-meaningful way at very high frequencies)</br>
 (therefore the reference for MagLS, eMagLS and eMagLS2 rendering filters are updated for verification)
