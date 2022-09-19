@@ -18,8 +18,14 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 ### 2022-09-19
-- Add reference rendering filters for complex SH convention for verification
-- Update `getMagLsFilters.m`, `getEMagLsFilters.m` and `getEMagLs2Filters.m` to use complex delay with subsample precision and restore original inter-aural group delay difference after magnitude least-squares optimization</br>
+- Add `getEMagLsFiltersEMA.m` to generate eMagLS rendering filters for equatorial microphone arrays (EMA)</br>
+(add the respective `getCH.m` and `ch_stackOrder.m` functions)</br>
+(this is does not have an example configuration in `testEMagLs.m` yet)</br>
+(the rendering filters for "complex" SH basis types do not function as intended yet)</br>
+(the implementation of the diffuseness constraint has not been verified yet)
+- Add reference rendering filters for "complex" SH convention for verification
+- Update `getMagLsFilters.m`, `getEMagLsFilters.m` and `getEMagLs2Filters.m` to use delays with subsample precision and restore original inter-aural group delay difference after magnitude least-squares optimization</br>
+(add the respective `applySubsampleDelay.m` function)</br>
 (this causes the resulting MagLS, eMagLS and eMagLS2 rendering filters to be different in a non-meaningful way at very high frequencies)</br>
 (therefore the reference for MagLS, eMagLS and eMagLS2 rendering filters are updated for verification)
 ### 2022-06-15
@@ -30,14 +36,14 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 (changes the signature of `getEMagLs2Filters.m` to require the desired SH order)</br>
 (yields no changes for the example Eigenmike configuration)
 - Update `testEMagLs.m` to export binaural renderings as WAV with 64bit resolution
-- Update functions to work for complex SH conventions by computing double-sided spectra (required in `getMagLsFilters.m` and `getEMagLsFilters.m` but not in `getEMagLs2Filters.m`)
+- Update functions to work for "complex" SH conventions by computing double-sided spectra (required in `getMagLsFilters.m` and `getEMagLsFilters.m` but not in `getEMagLs2Filters.m`)
 - Update `testEMagLs.m` to alternatively evaluate spectral difference in verification of rendering filters against provided reference
 - Update functions to compute 0 Hz bin not separately</br>
 (this causes the resulting eMagLS and eMagLS2 rendering filters to be different)</br>
 (therefore the reference for eMagLS and eMagLS2 rendering filters are updated for verification)
 - Update `testEMagLs.m` to verify the SH convention "wikipedia" against the "real" reference
 ### 2022-05-19
-- Update `binauralDecode.m` to warn when rendering discards imaginary signal parts (may occur for complex SH basis functions)
+- Update `binauralDecode.m` to warn when rendering discards imaginary signal parts (may occur for "complex" SH basis functions)
 - Update `testEMagLs.m` to use a different SH basis implementation more easily
 - Update `getRadialFilter.m` and `getSMAIRMatrix.m` to use `sphModalCoeffs()` from Array-Response-Simulator</br>
 (therefore also remove own implementations of spherical hankel and bessel functions)</br>
@@ -49,7 +55,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 - Update `getLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-16)
 - Update `getMagLsFilters.m` to streamline conjugate and transpose operations (results in neglectable maximum normalized absolute difference of 1e-15)
 - Update `testEMagLs.m` to accept tolerance when verifying rendering filters against the provided reference
-- Update functions to use `ifft()` without the forced symmetric parameter (fix to yield real or complex filters depending on the basis type)
+- Update functions to use `ifft()` without the forced symmetric parameter (fix to yield "real" or "complex" filters depending on the basis type)
 - Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to slightly improve computation time
 ### 2022-05-03
 - Update `testEMagLs.m` to add used SH basis type in exported file names (update file names of respective reference results)
