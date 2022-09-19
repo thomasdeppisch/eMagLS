@@ -177,8 +177,8 @@ if DO_VERIFY_REFERENCE
                 rethrow(ME);
             end
         end
+        fprintf('\n');
     end
-    fprintf('\n');
 end
 
 %% replace reference filters

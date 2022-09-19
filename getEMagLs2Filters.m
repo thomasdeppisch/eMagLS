@@ -73,13 +73,14 @@ numMics = length(micGridAziRad);
 numDirections = size(hL, 2);
 Y_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 
-% zero pad and remove group delay (alternative to applying global phase delay later)
+% zero pad and remove group delay with subsample precision
+% (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = grpdelay(mean(hL, 2), 1, f, fs);
-grpDR = grpdelay(mean(hR, 2), 1, f, fs);
-hL = circshift(hL, -round(median(grpDL)));
-hR = circshift(hR, -round(median(grpDR)));
+grpDL = median(grpdelay(mean(hL, 2), 1, f, fs));
+grpDR = median(grpdelay(mean(hR, 2), 1, f, fs));
+hL = applySubsampleDelay(hL, -grpDL);
+hR = applySubsampleDelay(hR, -grpDR);
 
 % transform into frequency domain
 HL = fft(hL);
@@ -163,8 +164,8 @@ end
 % shift from zero-phase-like to linear-phase-like
 % and restore initial group-delay difference between ears
 n_shift = nfft/2;
-wMlsL = circshift(wMlsL, n_shift);
-wMlsR = circshift(wMlsR, n_shift);
+wMlsL = applySubsampleDelay(wMlsL, n_shift);
+wMlsR = applySubsampleDelay(wMlsR, n_shift+grpDR-grpDL);
 
 % shorten to target length
 wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);

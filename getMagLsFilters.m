@@ -49,13 +49,14 @@ fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 
-% zero pad and remove group delay (alternative to applying global phase delay later)
+% zero pad and remove group delay with subsample precision
+% (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = grpdelay(hL * Y_pinv(:, 1), 1, f, fs);
-grpDR = grpdelay(hR * Y_pinv(:, 1), 1, f, fs);
-hL = circshift(hL, -round(median(grpDL)));
-hR = circshift(hR, -round(median(grpDR)));
+grpDL = median(grpdelay(hL * Y_pinv(:, 1), 1, f, fs));
+grpDR = median(grpdelay(hR * Y_pinv(:, 1), 1, f, fs));
+hL = applySubsampleDelay(hL, -grpDL);
+hR = applySubsampleDelay(hR, -grpDR);
 
 w_LS_l = hL * Y_pinv;
 w_LS_r = hR * Y_pinv;
@@ -143,8 +144,8 @@ end
 % shift from zero-phase-like to linear-phase-like
 % and restore initial group-delay difference between ears
 n_shift = nfft/2;
-wMlsL = circshift(wMlsL, n_shift);
-wMlsR = circshift(wMlsR, n_shift);
+wMlsL = applySubsampleDelay(wMlsL, n_shift);
+wMlsR = applySubsampleDelay(wMlsR, n_shift+grpDR-grpDL);
 
 % shorten to target length
 wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
