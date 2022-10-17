@@ -32,7 +32,6 @@ if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN    = 2048; % maxium length of result in samples
-REL_FADE_LEN    = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
 
@@ -152,12 +151,7 @@ wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
 wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
 
 % fade
-n_fadein = round(REL_FADE_LEN * len);
-n_fadeout = round(REL_FADE_LEN * len);
-hannin = hann(2*n_fadein);
-hannout = hann(2*n_fadeout);
-fade_win = [hannin(1:end/2); ones(len-(n_fadein+n_fadeout),1); hannout(end/2+1:end)];
-
+fade_win = getFadeWindow(len);
 wMlsL = wMlsL .* fade_win;
 wMlsR = wMlsR .* fade_win;
 

@@ -41,7 +41,6 @@ NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
-REL_FADE_LEN            = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
 
@@ -174,8 +173,8 @@ end
 
 % transform into time domain
 if isreal(Y_Hi_conj)
-   W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
-   W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
+    W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
+    W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
 end
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
@@ -195,12 +194,7 @@ wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
 wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
 
 % fade
-n_fadein = round(REL_FADE_LEN * len);
-n_fadeout = round(REL_FADE_LEN * len);
-hannin = hann(2*n_fadein);
-hannout = hann(2*n_fadeout);
-fade_win = [hannin(1:end/2); ones(len-(n_fadein+n_fadeout),1); hannout(end/2+1:end)];
-
+fade_win = getFadeWindow(len);
 wMlsL = wMlsL .* fade_win;
 wMlsR = wMlsR .* fade_win;
 

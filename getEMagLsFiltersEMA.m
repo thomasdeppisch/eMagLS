@@ -42,7 +42,6 @@ NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
-REL_FADE_LEN            = 0.15; % relative length of result fading window
 
 assert(len >= size(hL, 1), 'len too short');
 
@@ -78,9 +77,9 @@ Y_Lo_pinv = pinv(Y_Hi_conj(1:numHarmonics, :));
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
-Y_EH_Mic_ids = get_equatorial_ids_from_SHs(order);
-% Y_EH_Mic_not_ids = setdiff(1:numHarmonics, Y_EH_Mic_ids);
-Y_CH_Mic_ms = ch_stackOrder(order);
+Y_EH_ids = get_equatorial_ids_from_SHs(order);
+% Y_EH_not_ids = setdiff(1:numHarmonics, Y_EH_ids);
+Y_CH_ms = ch_stackOrder(order);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
@@ -100,57 +99,57 @@ W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
     % positive frequencies
     pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_Hi_conj; % circular harmonics
-    pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_Mic_ids, Y_CH_Mic_ms);
+    pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
     [U,S,V] = svd(pwGrid_EH.', 'econ');
     s = diag(S);
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_EH_reg_inv = conj(U) * (s .* V.');
 
     if k < k_cut % least-squares below cut
-        W_MLS_l(k,Y_EH_Mic_ids) = HL(k,:) * Y_EH_reg_inv;
-        W_MLS_r(k,Y_EH_Mic_ids) = HR(k,:) * Y_EH_reg_inv;
+        W_MLS_l(k,Y_EH_ids) = HL(k,:) * Y_EH_reg_inv;
+        W_MLS_r(k,Y_EH_ids) = HR(k,:) * Y_EH_reg_inv;
     else % magnitude least-squares above cut
-        phi_l = angle(W_MLS_l(k-1,Y_EH_Mic_ids) * pwGrid_EH);
-        phi_r = angle(W_MLS_r(k-1,Y_EH_Mic_ids) * pwGrid_EH);
+        phi_l = angle(W_MLS_l(k-1,Y_EH_ids) * pwGrid_EH);
+        phi_r = angle(W_MLS_r(k-1,Y_EH_ids) * pwGrid_EH);
         if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
-            W_MLS_l(k,Y_EH_Mic_ids) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_EH_reg_inv;
-            W_MLS_r(k,Y_EH_Mic_ids) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_EH_reg_inv;
+            W_MLS_l(k,Y_EH_ids) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_EH_reg_inv;
+            W_MLS_r(k,Y_EH_ids) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_EH_reg_inv;
         else
-            W_MLS_l(k,Y_EH_Mic_ids) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_EH_reg_inv;
-            W_MLS_r(k,Y_EH_Mic_ids) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_EH_reg_inv;
+            W_MLS_l(k,Y_EH_ids) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_EH_reg_inv;
+            W_MLS_r(k,Y_EH_ids) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_EH_reg_inv;
         end
     end
 %     % TODO: Clarify if this should be done
 %     %       -> Has s no influence on the 1-DoF results, but maybe for 3-DoF?
 %     % fill non-equatorial coefficients with least-squares SHs
-%     W_MLS_l(k,Y_EH_Mic_not_ids) = HL(k,:) * Y_Lo_pinv(:,Y_EH_Mic_not_ids);
-%     W_MLS_r(k,Y_EH_Mic_not_ids) = HR(k,:) * Y_Lo_pinv(:,Y_EH_Mic_not_ids);
+%     W_MLS_l(k,Y_EH_not_ids) = HL(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
+%     W_MLS_r(k,Y_EH_not_ids) = HR(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
 
     if ~isreal(Y_Hi_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
         % TODO: Fix the generation / rendering for complex SHs
-        error('The rendering filters for "complex" SH basis types do not function as intended yet.');
+        warning('The rendering filters for "complex" SH basis types do not function as intended yet.');
 
         % negative frequencies below cut in case of complex-valued SHs
         k_neg = nfft-k+2;
         pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_Hi_conj; % circular harmonics
-        pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_Mic_ids, Y_CH_Mic_ms);
+        pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
         [U,S,V] = svd(pwGrid_EH.', 'econ');
         s = diag(S);
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
         Y_EH_reg_inv = conj(U) * (s .* V.');
 
         if k < k_cut % least-squares below cut
-            W_MLS_l(k_neg,Y_EH_Mic_ids) = HL(k_neg,:) * Y_EH_reg_inv;
-            W_MLS_r(k_neg,Y_EH_Mic_ids) = HR(k_neg,:) * Y_EH_reg_inv;
+            W_MLS_l(k_neg,Y_EH_ids) = HL(k_neg,:) * Y_EH_reg_inv;
+            W_MLS_r(k_neg,Y_EH_ids) = HR(k_neg,:) * Y_EH_reg_inv;
         else % magnitude least-squares above cut
-            W_MLS_l(k_neg,Y_EH_Mic_ids) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_EH_reg_inv;
-            W_MLS_r(k_neg,Y_EH_Mic_ids) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_EH_reg_inv;
+            W_MLS_l(k_neg,Y_EH_ids) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_EH_reg_inv;
+            W_MLS_r(k_neg,Y_EH_ids) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_EH_reg_inv;
         end
 %         % TODO: Clarify if this should be done
 %         %       -> Has s no influence on the 1-DoF results, but maybe for 3-DoF?
 %         % fill non-equatorial coefficients with least-squares SHs
-%         W_MLS_l(k_neg,Y_EH_Mic_not_ids) = HL(k_neg,:) * Y_Lo_pinv(:,Y_EH_Mic_not_ids);
-%         W_MLS_r(k_neg,Y_EH_Mic_not_ids) = HR(k_neg,:) * Y_Lo_pinv(:,Y_EH_Mic_not_ids);
+%         W_MLS_l(k_neg,Y_EH_not_ids) = HL(k_neg,:) * Y_Lo_pinv(:,Y_EH_not_ids);
+%         W_MLS_r(k_neg,Y_EH_not_ids) = HR(k_neg,:) * Y_Lo_pinv(:,Y_EH_not_ids);
     end
 end
 
@@ -220,12 +219,7 @@ wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
 wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
 
 % fade
-n_fadein = round(REL_FADE_LEN * len);
-n_fadeout = round(REL_FADE_LEN * len);
-hannin = hann(2*n_fadein);
-hannout = hann(2*n_fadeout);
-fade_win = [hannin(1:end/2); ones(len-(n_fadein+n_fadeout),1); hannout(end/2+1:end)];
-
+fade_win = getFadeWindow(len);
 wMlsL = wMlsL .* fade_win;
 wMlsR = wMlsR .* fade_win;
 
