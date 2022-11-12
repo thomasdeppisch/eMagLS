@@ -91,8 +91,7 @@ W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
     % positive frequencies
     pwGrid = smairMat(:,:,k) * Y_Hi_conj;
-    [U,S,V] = svd(pwGrid.', 'econ');
-    s = diag(S);
+    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
 
@@ -115,8 +114,7 @@ for k = 1:numPosFreqs
         % negative frequencies below cut in case of complex-valued SHs
         k_neg = nfft-k+2;
         pwGrid = smairMat(:,:,k_neg) * Y_Hi_conj;
-        [U,S,V] = svd(pwGrid.', 'econ');
-        s = diag(S);
+        [U, s, V] = svd(pwGrid.', 'econ', 'vector');
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
         Y_reg_inv = conj(U) * (s .* V.');
 

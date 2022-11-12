@@ -89,8 +89,7 @@ W_MLS_l = zeros(numPosFreqs, numMics);
 W_MLS_r = zeros(numPosFreqs, numMics);
 for k = 1:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
-    [U,S,V] = svd(pwGrid.', 'econ');
-    s = diag(S);
+    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
 

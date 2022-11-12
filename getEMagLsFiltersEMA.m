@@ -100,8 +100,7 @@ for k = 1:numPosFreqs
     % positive frequencies
     pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_Hi_conj; % circular harmonics
     pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
-    [U,S,V] = svd(pwGrid_EH.', 'econ');
-    s = diag(S);
+    [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_EH_reg_inv = conj(U) * (s .* V.');
 
@@ -133,8 +132,7 @@ for k = 1:numPosFreqs
         k_neg = nfft-k+2;
         pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_Hi_conj; % circular harmonics
         pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
-        [U,S,V] = svd(pwGrid_EH.', 'econ');
-        s = diag(S);
+        [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
         Y_EH_reg_inv = conj(U) * (s .* V.');
 
