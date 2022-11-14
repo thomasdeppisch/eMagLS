@@ -5,10 +5,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 %     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
-% This function returns eMagLS binaural decoding filters.
-% For more information about the renderer, please refer to 
-% T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
-% of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
+% This function returns eMagLS binaural decoding filters for equatorial microphone arrays.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -32,7 +29,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Hannes Helmholz, 2022
 
 if nargin < 13; shFunction = @getCH; end
 if nargin < 12; shFunction = @getSH; end
@@ -41,7 +38,9 @@ if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
-SVD_REGUL_CONST         = 0.01;
+% SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
+SVD_REGUL_CONST         = 0.25; % gradually bigger magnitude deviations, but better filters
+% SVD_REGUL_CONST         = 1; % bad magnitude deviations at low frequencies
 
 assert(len >= size(hL, 1), 'len too short');
 
