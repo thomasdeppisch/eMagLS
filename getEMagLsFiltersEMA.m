@@ -72,8 +72,22 @@ simulationOrder = sqrt(size(smairMat, 2)) - 1;
 
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
-Y_Hi_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
-Y_Lo_pinv = pinv(Y_Hi_conj(1:numHarmonics, :));
+Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
+Y_hor_pinv = pinv(Y_hor_conj);
+
+% if spherical data is provided then subsample HRIR set to horizontal grid
+if any(hrirGridZenRad ~= pi/2)
+    % TODO: The required number of points here is not quite clear. At least
+    %       the number of CHs. A higher number did not make a qualitative
+    %       difference.
+    hrirHorGridAziRad = linspace(0, 2*pi, 2*simulationOrder+1).'; 
+%     hrirHorGridAziRad = linspace(0, 2*pi, (simulationOrder+1)^2).';
+    fprintf('subsampling HRIRs to horizontal grid ... ');
+    Y_hor_conj = shFunction(simulationOrder, [hrirHorGridAziRad, ones(size(hrirHorGridAziRad)) * pi/2], shDefinition)';
+    hL = hL * Y_hor_pinv * Y_hor_conj;
+    hR = hR * Y_hor_pinv * Y_hor_conj;
+    Y_hor_pinv = pinv(Y_hor_conj);
+end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
@@ -85,8 +99,8 @@ Y_CH_ms = ch_stackOrder(order);
 % (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = median(grpdelay(hL * Y_Lo_pinv(:, 1), 1, f, fs));
-grpDR = median(grpdelay(hR * Y_Lo_pinv(:, 1), 1, f, fs));
+grpDL = median(grpdelay(hL * Y_hor_pinv(:, 1), 1, f, fs));
+grpDR = median(grpdelay(hR * Y_hor_pinv(:, 1), 1, f, fs));
 hL = applySubsampleDelay(hL, -grpDL);
 hR = applySubsampleDelay(hR, -grpDR);
 
@@ -98,7 +112,7 @@ W_MLS_l = zeros(nfft, numHarmonics);
 W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
     % positive frequencies
-    pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_Hi_conj; % circular harmonics
+    pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_hor_conj; % circular harmonics
     pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
     [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
@@ -124,13 +138,13 @@ for k = 1:numPosFreqs
 %     W_MLS_l(k,Y_EH_not_ids) = HL(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
 %     W_MLS_r(k,Y_EH_not_ids) = HR(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
 
-    if ~isreal(Y_Hi_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
+    if ~isreal(Y_hor_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
         % TODO: Fix the generation / rendering for complex SHs
         warning('The rendering filters for "complex" SH basis types do not function as intended yet.');
 
         % negative frequencies below cut in case of complex-valued SHs
         k_neg = nfft-k+2;
-        pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_Hi_conj; % circular harmonics
+        pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_hor_conj; % circular harmonics
         pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
         [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
@@ -195,13 +209,13 @@ if applyDiffusenessConst
 end
 
 % transform into time domain
-if isreal(Y_Hi_conj)
+if isreal(Y_hor_conj)
     W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
     W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
 end
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);
-if isreal(Y_Hi_conj)
+if isreal(Y_hor_conj)
     assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
     assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
 end
