@@ -31,7 +31,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 %
 % Hannes Helmholz, 2022
 
-if nargin < 13; shFunction = @getCH; end
+if nargin < 13; chFunction = @getCH; end
 if nargin < 12; shFunction = @getSH; end
 if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 
