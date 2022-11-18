@@ -1,7 +1,7 @@
-function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+function [wMlsL, wMlsR] = getEMagLsFiltersEMAinEHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
     shDefinition, shFunction, chFunction)
-% [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+% [wMlsL, wMlsR] = getEMagLsFiltersEMAinEHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
@@ -26,7 +26,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZe
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 % chFunction             .. CH basis function, default: @getCH
 %
-% This software is licensed under a Non-Commercial Software License 
+% This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Hannes Helmholz, 2022
@@ -164,13 +164,13 @@ for k = 1:numPosFreqs
     end
 end
 
-if applyDiffusenessConst 
+if applyDiffusenessConst
     warning('Functionality of the diffuseness constraint has not been verified yet.');
 
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
-    
+
     M = zeros(numPosFreqs, 2, 2);
     HCorr = zeros(numPosFreqs, numHarmonics, 2);
     R = zeros(numPosFreqs, 2, 2);
@@ -202,7 +202,7 @@ if applyDiffusenessConst
 
         RCorr(ff,:,:) = 1/(4*pi) * squeeze(HCorr(ff,:,:))' * smairMat(:,:,ff) * smairMat(:,:,ff)' * squeeze(HCorr(ff,:,:));
     end
-    
+
     W_MLS_l = conj(HCorr(:,:,1));
     W_MLS_r = conj(HCorr(:,:,2));
 end
