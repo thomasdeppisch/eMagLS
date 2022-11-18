@@ -1,7 +1,7 @@
-function [wMlsL, wMlsR] = getEMagLsFiltersEMAinEHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
     shDefinition, shFunction, chFunction)
-% [wMlsL, wMlsR] = getEMagLsFiltersEMAinEHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+% [wMlsL, wMlsR] = getEMagLsFiltersEMAinCHtoSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
@@ -38,13 +38,14 @@ if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 NFFT_MAX_LEN            = 2048; % maxium length of result in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
-% SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
-SVD_REGUL_CONST         = 0.25; % gradually bigger magnitude deviations, but better filters
-% SVD_REGUL_CONST         = 1; % bad magnitude deviations at low frequencies
+SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
 
-% TODO: Remove requirement for regularization (not sure if it is even possible)
-warning(['The resulting filters are similar to `getEMagLsFiltersEMAinCH()` but require ' ...
-    'strong regularization in order to show acceptable behaviour in the time domain.']);
+% TODO: Fix transformation of rendering filters to SHs
+%       (This would still allow only 1-DoF rotations, but would simplfy the
+%       surrounding EMA sound field decomposition and binaural rendering
+%       implementations.)
+warning(['The resulting filters are identical to `getEMagLsFiltersEMAinCH()` but the transformation to SHs ' ...
+    'and rendering does not function as intended yet (not sure if it is even possible).']);
 assert(len >= size(hL, 1), 'len too short');
 
 nfft = max(2*len, NFFT_MAX_LEN);
@@ -79,11 +80,7 @@ Y_hor_pinv = pinv(Y_hor_conj);
 
 % if spherical data is provided then subsample HRIR set to horizontal grid
 if any(hrirGridZenRad ~= pi/2)
-    % TODO: The required number of points here is not quite clear. At least
-    %       the number of CHs. A higher number did not make a qualitative
-    %       difference.
-    hrirHorGridAziRad = linspace(0, 2*pi, 2*simulationOrder+1).'; 
-%     hrirHorGridAziRad = linspace(0, 2*pi, (simulationOrder+1)^2).';
+    hrirHorGridAziRad = linspace(0, 2*pi, 2*simulationOrder+1).';
     fprintf('subsampling HRIRs to horizontal grid ... ');
     Y_hor_conj = shFunction(simulationOrder, [hrirHorGridAziRad, ones(size(hrirHorGridAziRad)) * pi/2], shDefinition)';
     hL = hL * Y_hor_pinv * Y_hor_conj;
@@ -93,9 +90,7 @@ end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
-Y_EH_ids = get_equatorial_ids_from_SHs(order);
-% Y_EH_not_ids = setdiff(1:numHarmonics, Y_EH_ids);
-Y_CH_ms = ch_stackOrder(order);
+Y_CH_ids = get_circular_ids_from_SHs(order);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
@@ -115,30 +110,24 @@ W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
     % positive frequencies
     pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_hor_conj; % circular harmonics
-    pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
-    [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_EH_reg_inv = conj(U) * (s .* V.');
+    Y_CH_reg_inv = conj(U) * (s .* V.');
 
     if k < k_cut % least-squares below cut
-        W_MLS_l(k,Y_EH_ids) = HL(k,:) * Y_EH_reg_inv;
-        W_MLS_r(k,Y_EH_ids) = HR(k,:) * Y_EH_reg_inv;
+        W_MLS_l(k,Y_CH_ids) = HL(k,:) * Y_CH_reg_inv;
+        W_MLS_r(k,Y_CH_ids) = HR(k,:) * Y_CH_reg_inv;
     else % magnitude least-squares above cut
-        phi_l = angle(W_MLS_l(k-1,Y_EH_ids) * pwGrid_EH);
-        phi_r = angle(W_MLS_r(k-1,Y_EH_ids) * pwGrid_EH);
+        phi_l = angle(W_MLS_l(k-1,Y_CH_ids) * pwGrid_CH);
+        phi_r = angle(W_MLS_r(k-1,Y_CH_ids) * pwGrid_CH);
         if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
-            W_MLS_l(k,Y_EH_ids) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_EH_reg_inv;
-            W_MLS_r(k,Y_EH_ids) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_EH_reg_inv;
+            W_MLS_l(k,Y_CH_ids) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_CH_reg_inv;
+            W_MLS_r(k,Y_CH_ids) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_CH_reg_inv;
         else
-            W_MLS_l(k,Y_EH_ids) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_EH_reg_inv;
-            W_MLS_r(k,Y_EH_ids) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_EH_reg_inv;
+            W_MLS_l(k,Y_CH_ids) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_CH_reg_inv;
+            W_MLS_r(k,Y_CH_ids) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_CH_reg_inv;
         end
     end
-%     % TODO: Clarify if this should be done
-%     %       -> Has s no influence on the 1-DoF results, but maybe for 3-DoF?
-%     % fill non-equatorial coefficients with least-squares SHs
-%     W_MLS_l(k,Y_EH_not_ids) = HL(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
-%     W_MLS_r(k,Y_EH_not_ids) = HR(k,:) * Y_Lo_pinv(:,Y_EH_not_ids);
 
     if ~isreal(Y_hor_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
         % TODO: Fix the generation / rendering for complex SHs
@@ -147,23 +136,17 @@ for k = 1:numPosFreqs
         % negative frequencies below cut in case of complex-valued SHs
         k_neg = nfft-k+2;
         pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_hor_conj; % circular harmonics
-        pwGrid_EH = expand_to_equatorial_harmonics(pwGrid_CH, Y_EH_ids, Y_CH_ms);
-        [U, s, V] = svd(pwGrid_EH.', 'econ', 'vector');
+        [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-        Y_EH_reg_inv = conj(U) * (s .* V.');
+        Y_CH_reg_inv = conj(U) * (s .* V.');
 
         if k < k_cut % least-squares below cut
-            W_MLS_l(k_neg,Y_EH_ids) = HL(k_neg,:) * Y_EH_reg_inv;
-            W_MLS_r(k_neg,Y_EH_ids) = HR(k_neg,:) * Y_EH_reg_inv;
+            W_MLS_l(k_neg,Y_CH_ids) = HL(k_neg,:) * Y_CH_reg_inv;
+            W_MLS_r(k_neg,Y_CH_ids) = HR(k_neg,:) * Y_CH_reg_inv;
         else % magnitude least-squares above cut
-            W_MLS_l(k_neg,Y_EH_ids) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_EH_reg_inv;
-            W_MLS_r(k_neg,Y_EH_ids) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_EH_reg_inv;
+            W_MLS_l(k_neg,Y_CH_ids) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_CH_reg_inv;
+            W_MLS_r(k_neg,Y_CH_ids) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_CH_reg_inv;
         end
-%         % TODO: Clarify if this should be done
-%         %       -> Has s no influence on the 1-DoF results, but maybe for 3-DoF?
-%         % fill non-equatorial coefficients with least-squares SHs
-%         W_MLS_l(k_neg,Y_EH_not_ids) = HL(k_neg,:) * Y_Lo_pinv(:,Y_EH_not_ids);
-%         W_MLS_r(k_neg,Y_EH_not_ids) = HR(k_neg,:) * Y_Lo_pinv(:,Y_EH_not_ids);
     end
 end
 
@@ -240,24 +223,9 @@ wMlsR = wMlsR .* fade_win;
 end
 
 %% helper functions
-function ids = get_equatorial_ids_from_SHs(order)
+function ids = get_circular_ids_from_SHs(order)
     ids = 1;
     for n = 1 : order
-        for m = -n : 2 : n % each (n+m)==even
-            ids = [ids, n^2+n+m+1]; %#ok<AGROW> 
-        end
-    end
-end
-
-function Y_EH = expand_to_equatorial_harmonics(Y_CH, Y_EH_ids, Y_CH_ms)
-    order = (size(Y_CH, 1) - 1) / 2;
-    Y_EH = zeros(length(Y_EH_ids), size(Y_CH, 2));
-    for n = 0 : order
-        for m = -n : 2 : n % each equatorial coefficient
-            % Jens' magic equivalent to [Ahrens2021_JASA, Eq. (19)]
-            % Don't use sphharm_type here!
-            Y_EH(Y_EH_ids == n^2+n+m+1, :) = ...
-                Y_CH(Y_CH_ms == m, :) .* sphharm(n, m, pi/2, 0, 'complex');
-        end
+        ids = [ids, n^2+1, n^2+n+n+1]; %#ok<AGROW> 
     end
 end
