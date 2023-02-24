@@ -18,6 +18,11 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 
+- Fix functions to calculate the filters at the specified oversampled length</br>
+(now the oversampling actually uses double the specified length up to a maximum of 2048 samples)</br>
+(this causes all the resulting rendering filters to be different at high frequencies in a non-meaningful way)</br>
+(therefore the reference for all the rendering filters are updated for verification)
+
 ### 2022-11-18
 - Add `getEMagLsFiltersEMAinCH.m` and `getEMagLsFiltersEMAinCHtoSH.m` with different preliminary implementations of EMA rendering filters
 - Rename `getEMagLsFiltersEMA.m` into ``getEMagLsFiltersEMAinEHtoSH.m` to reflect its function

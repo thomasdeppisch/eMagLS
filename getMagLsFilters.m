@@ -31,11 +31,11 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN    = 2048; % maxium length of result in samples
+NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 
 assert(len >= size(hL, 1), 'len too short');
 
-nfft = max(2*len, NFFT_MAX_LEN);
+nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).';
 numPosFreqs = length(f);
 f_cut = 500 * order; % from N > k

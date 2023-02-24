@@ -35,7 +35,7 @@ if nargin < 13; chFunction = @getCH; end
 if nargin < 12; shFunction = @getSH; end
 if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium length of result in samples
+NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 % SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
@@ -47,7 +47,7 @@ warning(['The resulting filters are similar to `getEMagLsFiltersEMAinCH()` but r
     'strong regularization in order to show acceptable behaviour in the time domain.']);
 assert(len >= size(hL, 1), 'len too short');
 
-nfft = max(2*len, NFFT_MAX_LEN);
+nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).';
 numPosFreqs = length(f);
 f_cut = 500 * order; % from N > k
