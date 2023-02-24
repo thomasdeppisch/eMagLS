@@ -17,6 +17,16 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+
+### 2022-11-18
+- Add `getEMagLsFiltersEMAinCH.m` and `getEMagLsFiltersEMAinCHtoSH.m` with different preliminary implementations of EMA rendering filters
+- Rename `getEMagLsFiltersEMA.m` into ``getEMagLsFiltersEMAinEHtoSH.m` to reflect its function
+- Fix `getEMagLsFiltersEMA.m` parsing of default CH basis function handle
+- Update `getEMagLsFiltersEMA.m` SVD regularization parameter to yield more sensible rendering filters that</br>
+(better behaviour in time domain at the cost of small deviations in magnitude response)
+- Update `getEMagLsFiltersEMA.m` to temporarily use only horizontal HRIRs for magnitude optimization</br>
+(spherical HRIR data will be SH sub-sampled to a horizontal grid)
+- Update functions to simplify syntax of singular value decomposition
 - Update functions to extract generation of time domain window for resulting rendering filters</br>
 (add the respective `getFadeWindow.m` function)
 
