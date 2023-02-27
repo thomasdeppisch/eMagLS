@@ -24,8 +24,8 @@ shDefinition = 'real';
 % shDefinition = 'complex';
 
 % % An alternative version which uses a different SH basis convention and implementation
-% shFunction   = @getSH_SFS; % from Spherical-Harmonic-Transform toolbox
-% shDefinition = 'wikipedia'; % or e.g. 'complex'
+% shFunction   = @getSH_AmbiEnc; % from Ambisonic Encoding toolbox
+% shDefinition = 'real'; % or e.g. 'complex'
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
@@ -338,11 +338,11 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
 %         rad2deg(gridAziZenRad(:, 2)), shDefinition);
 % end
 
-function Y = getSH_SFS(order, gridAziZenRad, shDefinition) %#ok<DEFNU> 
+function Y = getSH_AmbiEnc(order, gridAziZenRad, shDefinition) %#ok<DEFNU> 
 % This uses a different SH implementation where this function has to match
 % the signature (parameters and output format) of `getSH()`
-    % from soundfieldsynthesis "Common" scripts
-    % $ git clone https://github.com/JensAhrens/soundfieldsynthesis.git
+    % from Ambisonic Encoding toolbox
+    % $ git clone https://github.com/AppliedAcousticsChalmers/ambisonic-encoding.git
     Y = zeros(size(gridAziZenRad, 1), (order+1)^2);
     for n = 0 : order
         for m = -n : n

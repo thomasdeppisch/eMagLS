@@ -255,9 +255,7 @@ function Y_EH = expand_to_equatorial_harmonics(Y_CH, Y_EH_ids, Y_CH_ms)
     for n = 0 : order
         for m = -n : 2 : n % each equatorial coefficient
             % Jens' magic equivalent to [Ahrens2021_JASA, Eq. (19)]
-            % Don't use sphharm_type here!
-            Y_EH(Y_EH_ids == n^2+n+m+1, :) = ...
-                Y_CH(Y_CH_ms == m, :) .* sphharm(n, m, pi/2, 0, 'complex');
+            Y_EH(Y_EH_ids == n^2+n+m+1, :) = Y_CH(Y_CH_ms == m, :) .* N_nm(n, m, pi/2);
         end
     end
 end
