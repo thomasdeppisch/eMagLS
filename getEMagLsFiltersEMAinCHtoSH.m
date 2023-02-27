@@ -90,7 +90,7 @@ end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
-Y_CH_ids = get_circular_ids_from_SHs(order);
+Y_CH_ids = ch_fromShIds(order);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
@@ -220,12 +220,4 @@ fade_win = getFadeWindow(len);
 wMlsL = wMlsL .* fade_win;
 wMlsR = wMlsR .* fade_win;
 
-end
-
-%% helper functions
-function ids = get_circular_ids_from_SHs(order)
-    ids = 1;
-    for n = 1 : order
-        ids = [ids, n^2+1, n^2+n+n+1]; %#ok<AGROW> 
-    end
 end

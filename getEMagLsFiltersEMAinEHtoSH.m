@@ -93,7 +93,7 @@ end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
-Y_EH_ids = get_equatorial_ids_from_SHs(order);
+Y_EH_ids = eh_fromShIds(order);
 % Y_EH_not_ids = setdiff(1:numHarmonics, Y_EH_ids);
 Y_CH_ms = ch_stackOrder(order);
 
@@ -240,15 +240,6 @@ wMlsR = wMlsR .* fade_win;
 end
 
 %% helper functions
-function ids = get_equatorial_ids_from_SHs(order)
-    ids = 1;
-    for n = 1 : order
-        for m = -n : 2 : n % each (n+m)==even
-            ids = [ids, n^2+n+m+1]; %#ok<AGROW> 
-        end
-    end
-end
-
 function Y_EH = expand_to_equatorial_harmonics(Y_CH, Y_EH_ids, Y_CH_ms)
     order = (size(Y_CH, 1) - 1) / 2;
     Y_EH = zeros(length(Y_EH_ids), size(Y_CH, 2));

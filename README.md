@@ -18,6 +18,8 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 
+- Update `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to extract helper functions</br>
+(add the respective `ch_fromShIds.m` and `eh_fromShIds.m` functions)
 - Fix `getEMagLsFiltersEMAinEHtoSH.m` to reflect switch from "soundfieldsynthesis" scripts to updated "Ambisonic Encoding" toolbox
 - Fix functions to calculate the filters at the specified oversampled length</br>
 (now the oversampling actually uses double the specified length up to a maximum of 2048 samples)</br>
