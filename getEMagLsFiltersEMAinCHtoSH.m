@@ -92,6 +92,10 @@ fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
 Y_CH_ids = ch_fromShIds(order);
 
+% precompute `pwGrid_CH = Y_CH_Mic_pinv * (smairMat(:,:,k) * Y_hor_conj)` term
+smairMat_CH = pagemtimes(smairMat, Y_hor_conj);
+smairMat_CH = pagemtimes(Y_CH_Mic_pinv, smairMat_CH);
+
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
@@ -109,7 +113,7 @@ W_MLS_l = zeros(nfft, numHarmonics);
 W_MLS_r = zeros(nfft, numHarmonics);
 for k = 1:numPosFreqs
     % positive frequencies
-    pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k) * Y_hor_conj; % circular harmonics
+    pwGrid_CH = smairMat_CH(:,:,k); % circular harmonics
     [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_CH_reg_inv = conj(U) * (s .* V.');
@@ -135,7 +139,7 @@ for k = 1:numPosFreqs
 
         % negative frequencies below cut in case of complex-valued SHs
         k_neg = nfft-k+2;
-        pwGrid_CH = Y_CH_Mic_pinv * smairMat(:,:,k_neg) * Y_hor_conj; % circular harmonics
+        pwGrid_CH = smairMat_CH(:,:,k_neg); % circular harmonics
         [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
         s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
         Y_CH_reg_inv = conj(U) * (s .* V.');

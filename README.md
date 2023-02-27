@@ -18,6 +18,8 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 
+- Update `getEMagLsFiltersEMAinCH.m`, `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to improve computation speed</br>
+(extract feasible matrix multiplications to be pre-computed before the loop)
 - Update `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to extract helper functions</br>
 (add the respective `ch_fromShIds.m` and `eh_fromShIds.m` functions)
 - Fix `getEMagLsFiltersEMAinEHtoSH.m` to reflect switch from "soundfieldsynthesis" scripts to updated "Ambisonic Encoding" toolbox
