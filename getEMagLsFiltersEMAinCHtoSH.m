@@ -46,6 +46,7 @@ SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
 %       implementations.)
 warning(['The resulting filters are identical to `getEMagLsFiltersEMAinCH()` but the transformation to SHs ' ...
     'and rendering does not function as intended yet (not sure if it is even possible).']);
+% TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
 
 nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling

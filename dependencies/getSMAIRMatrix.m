@@ -4,8 +4,8 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % calculates SMAIR transform matrices, i.e. SMA processing (plane-wave radiation,
 % scattering, mic encoding, radial filtering) but without any sources
 %
-% smairMat      .. numShsSimulation x numShsOut x numFreqs
-%               .. or (if returnRawMicSigs) numShsSimulation x numMics x numFreqs
+% smairMat      .. numShsOut x numShsSimulation x numFreqs
+%               .. or (if returnRawMicSigs) numMics x numShsSimulation x numFreqs
 % params        .. updated parameters
 %
 % Some parameters are limited to the following options:

@@ -45,6 +45,7 @@ SVD_REGUL_CONST         = 0.25; % gradually bigger magnitude deviations, but bet
 % TODO: Remove requirement for regularization (not sure if it is even possible)
 warning(['The resulting filters are similar to `getEMagLsFiltersEMAinCH()` but require ' ...
     'strong regularization in order to show acceptable behaviour in the time domain.']);
+% TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
 
 nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling

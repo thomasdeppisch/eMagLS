@@ -33,6 +33,7 @@ if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 
+% TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
 
 nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling
