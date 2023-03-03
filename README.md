@@ -18,6 +18,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 
+- Add functions `getMagLsSphericalHeadFilter.m` and `getMagLsArrayDiffuseFilter.m` to provide direction-independent array equalization filters that can be useful in combination with MagLS
 - Update `getEMagLsFiltersEMAinCH.m`, `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to improve computation speed</br>
 (extract feasible matrix multiplications to be pre-computed before the loop)
 - Update `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to extract helper functions</br>
