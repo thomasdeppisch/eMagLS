@@ -75,12 +75,11 @@ Y_hor_pinv = pinv(Y_hor_conj);
 
 % if spherical data is provided then subsample HRIR set to horizontal grid
 if any(hrirGridZenRad ~= pi/2)
-    hrirHorGridAziRad = linspace(0, 2*pi, 2*simulationOrder+1).';
+    hrirHorGridAziRad = linspace(0, 2*pi, numHarmonics).';
     fprintf('subsampling HRIRs to horizontal grid ... ');
     Y_hor_conj = shFunction(simulationOrder, [hrirHorGridAziRad, ones(size(hrirHorGridAziRad)) * pi/2], shDefinition)';
     hL = hL * Y_hor_pinv * Y_hor_conj;
     hR = hR * Y_hor_pinv * Y_hor_conj;
-    Y_hor_pinv = pinv(Y_hor_conj);
 end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);

@@ -17,7 +17,8 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
-
+- Update preliminary EMA functions to subsample a spherical HRIR to a circular grid at lower resolution</br>
+(this should improve the resulting rendering filters for lower-resolution input HRIRs)
 - Update functions to calculate the HRIR group delay in a simpler way without meaningful changes in the result</br>
 (this causes the resulting MagLS, eMagLS and eMagLS2 rendering filters to be different in a non-meaningful way at very high frequencies)</br>
 (therefore the reference for MagLS, eMagLS and eMagLS2 rendering filters are updated for verification)
@@ -31,7 +32,6 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 (now the oversampling actually uses double the specified length up to a maximum of 2048 samples)</br>
 (this causes all the resulting rendering filters to be different at high frequencies in a non-meaningful way)</br>
 (therefore the reference for all the rendering filters are updated for verification)
-
 ### 2022-11-18
 - Add `getEMagLsFiltersEMAinCH.m` and `getEMagLsFiltersEMAinCHtoSH.m` with different preliminary implementations of EMA rendering filters
 - Rename `getEMagLsFiltersEMA.m` into ``getEMagLsFiltersEMAinEHtoSH.m` to reflect its function
@@ -43,7 +43,6 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 - Update functions to simplify syntax of singular value decomposition
 - Update functions to extract generation of time domain window for resulting rendering filters</br>
 (add the respective `getFadeWindow.m` function)
-
 ### 2022-09-19
 - Update `getEMagLsFiltersEMA.m` to remove unused array grid zenith coordinates</br>
 (add non-functioning example call to `testEMagLs.m`)
