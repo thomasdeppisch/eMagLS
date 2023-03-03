@@ -94,8 +94,8 @@ smairMat_CH = pagemtimes(Y_CH_Mic_pinv, smairMat_CH);
 % (alternative to applying global phase delay later)
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
-grpDL = median(grpdelay(hL * Y_hor_pinv(:, 1), 1, f, fs));
-grpDR = median(grpdelay(hR * Y_hor_pinv(:, 1), 1, f, fs));
+grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
+grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
 hL = applySubsampleDelay(hL, -grpDL);
 hR = applySubsampleDelay(hR, -grpDR);
 

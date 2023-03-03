@@ -18,6 +18,9 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 
 ## Changelog
 
+- Update functions to calculate the HRIR group delay in a simpler way without meaningful changes in the result</br>
+(this causes the resulting MagLS, eMagLS and eMagLS2 rendering filters to be different in a non-meaningful way at very high frequencies)</br>
+(therefore the reference for MagLS, eMagLS and eMagLS2 rendering filters are updated for verification)
 - Add functions `getMagLsSphericalHeadFilter.m` and `getMagLsArrayDiffuseFilter.m` to provide direction-independent array equalization filters that can be useful in combination with MagLS
 - Update `getEMagLsFiltersEMAinCH.m`, `getEMagLsFiltersEMAinCHtoSH.m` and `getEMagLsFiltersEMAinEHtoSH.m` to improve computation speed</br>
 (extract feasible matrix multiplications to be pre-computed before the loop)
