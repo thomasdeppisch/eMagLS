@@ -82,9 +82,9 @@ numDirections = size(hL, 2);
 emairDir_sh = zeros(nfft, numHarmonics, numDirections);
 for d = 1 : numDirections
     % TODO: Decide how this function should be made available to this repsitory
-    %       i.e., a modified version of https://github.com/AppliedAcousticsChalmers/ambisonic-encoding/blob/main/dependencies/get_sound_field_sh_coeffs_from_ema_t.m
-    emairDir_sh(:, :, d) = get_sound_field_sh_coeffs_from_ema_t2( ...
-        emairDir_t(:, :, d), order, micGridAziRad.');
+    % skip radial filtering here (providing 1 as the argument)!!
+    emairDir_sh(:, :, d) = get_sound_field_sh_coeffs_from_ema_t( ...
+        emairDir_t(:, :, d), 1, order, micGridAziRad.');
 end; clear d;
 
 % Rotate the EMA SH sound field to impose the HRIR elevation
