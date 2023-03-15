@@ -33,6 +33,10 @@ bn_Lo = bn_Lo_Dir * Y_Lo;
 bn_Hi_df = rms(abs(bn_Hi), 2) * sqrt(size(bn_Hi, 2)) / (4*pi);
 bn_Lo_df = rms(abs(bn_Lo), 2) * sqrt(size(bn_Lo, 2)) / (4*pi);
 
+% normalize by DC bin
+% (so that resulting filter has magnitude of 0 dB at low frequencies)
+bn_Lo_df = bn_Lo_df / bn_Lo_df(1);
+
 % calculate array diffuse-field difference (equivalent to Spherical Head Filter)
 W_Alias = bn_Hi_df ./ bn_Lo_df;
 
@@ -62,9 +66,5 @@ wAdf = wAdf(n_shift-len/2+1:n_shift+len/2, :);
 % fade
 fade_win = getFadeWindow(len);
 wAdf = wAdf .* fade_win;
-
-% normalize amplitude
-max_amp = max(abs(wAdf));
-wAdf = wAdf / max_amp;
 
 end

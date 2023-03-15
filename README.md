@@ -17,6 +17,7 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+- Update `getMagLsSphericalHeadFilter.m` and `getMagLsArrayDiffuseFilter.m` to remove amplitude normalization and yield no magnitude changes at low frequencies
 ### 2023-03-08
 - Add `getEMagLsFiltersEMAinSH.m` to provide the implementation of EMA rendering filters in spherical harmonics
 - Update functions to calculate the HRIR group delay in a simpler way without meaningful changes in the result</br>

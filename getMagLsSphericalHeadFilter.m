@@ -51,8 +51,4 @@ wShf = wShf(n_shift-len/2+1:n_shift+len/2, :);
 fade_win = getFadeWindow(len);
 wShf = wShf .* fade_win;
 
-% normalize amplitude
-max_amp = max(abs(wShf));
-wShf = wShf / max_amp;
-
 end
