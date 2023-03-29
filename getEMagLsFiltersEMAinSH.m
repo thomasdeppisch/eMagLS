@@ -36,7 +36,7 @@ if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
-SVD_REGUL_CONST         = 0.01; % very good magnitude, bad filters
+SVD_REGUL_CONST         = 0.01;
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
@@ -65,18 +65,20 @@ params.shFunction = shFunction;
 emairMat = getSMAIRMatrix(params);
 simulationOrder = sqrt(size(emairMat, 2)) - 1;
 
-% Sample the microphone responses to PW directions on the EMA from all HRIR
+% sample the microphone responses to PW directions on the EMA from all HRIR
 % directions, but mapped to elevation = 0
 Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, ones(size(hrirGridAziRad)) * pi/2], shDefinition)';
 emairDir = pagemtimes(emairMat, Y_hor_conj);
+clear emairMat;
 
-% Transform into time domain
+% transform into time domain
 numPosFreqs = length(f);
 emairDir = permute(emairDir, [3, 1, 2]);
 emairDir = [emairDir(1:numPosFreqs, :, :); flipud(conj(emairDir(2:numPosFreqs-1, :, :)))];
 emairDir_t = ifft(emairDir);
+clear emairDir;
 
-% Decompose with EMA functions without radial filters
+% decompose with EMA functions without radial filters
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 emairDir_sh = zeros(nfft, numHarmonics, numDirections);
@@ -86,33 +88,30 @@ for d = 1 : numDirections
     emairDir_sh(:, :, d) = get_sound_field_sh_coeffs_from_ema_t( ...
         emairDir_t(:, :, d), 1, order, micGridAziRad.');
 end; clear d;
+clear emairDir_t;
 
-% Rotate the EMA SH sound field to impose the HRIR elevation
+% rotate the EMA SH sound field to impose the HRIR elevation
 for d = 1 : numDirections
-    % NOTE: This uses the SHT convention of spherical harmonics. Therefore,
-    %       the resulting rotation matrices may not be correct for other
-    %       conventions.
-    % TODO: The three rotations can probably be done in one step
+    if hrirGridZenRad(d) ~= pi/2
+        % NOTE: This uses the SHT convention of spherical harmonics.
+        %       Therefore, the resulting rotation matrices may not be
+        %       correct for other conventions!
 
-    % rotate SH represention so that the plane wave impinges from the front
-    euler_matrix  = euler2rotationMatrix(hrirGridAziRad(d), 0, 0, 'zyz');
-    sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-    emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
+        % 1) rotate SH represention so that the plane wave impinges from the front
+        % 2) rotate SH represention to impose the inverted desired elevation of incidence
+        %    (and convert colatitude to elevation)
+        % 3) rotate SH represention back to the original azimuth
+        euler_matrix  = euler2rotationMatrix(-hrirGridAziRad(d), ...
+            hrirGridZenRad(d) - pi/2, hrirGridAziRad(d), 'zyz');
+        sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
+        emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
+    end
+end; clear d euler_matrix sh_rot_matrix;
 
-    % rotate SH represention to impose the inverted desired elevation of incidence
-    euler_matrix  = euler2rotationMatrix(0, hrirGridZenRad(d) - pi/2, 0, 'zyz'); % colatitude to elevation
-    sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-    emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
-
-    % rotate SH represention back to the original azimuth
-    euler_matrix  = euler2rotationMatrix(-hrirGridAziRad(d), 0, 0, 'zyz');
-    sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-    emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
-end; clear d ang R1 R1_sh;
-
-% Transform into freqeuncy domain
+% transform into freqeuncy domain
 pwGridAll = fft(emairDir_sh);
 pwGridAll = permute(pwGridAll, [2, 3, 1]);
+clear emairDir_sh;
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
@@ -132,7 +131,6 @@ W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
 for k = 1:numPosFreqs
     % positive frequencies
     pwGrid = pwGridAll(:,:,k);
-
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
