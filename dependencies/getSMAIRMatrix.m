@@ -92,8 +92,9 @@ function [smairMat, params] = getSMAIRMatrix(params)
     f = linspace(0, params.fs/2, nfft/2+1).';
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
     
-    % determine simulation order based on Rafaely aliasing frequency 
-    simulationOrder = ceil(params.fs * pi * params.smaRadius / C);
+    % determine simulation order based on Rafaely aliasing frequency
+    % (or use requested array order if higher)
+    simulationOrder = max([params.order, ceil(params.fs * pi * params.smaRadius / C)]);
     numShsSimulation = (simulationOrder+1)^2;
     numShsOut = (params.order+1)^2;
     numPosFreqs = length(f);
