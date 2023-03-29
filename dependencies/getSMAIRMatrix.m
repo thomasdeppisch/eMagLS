@@ -114,8 +114,8 @@ function [smairMat, params] = getSMAIRMatrix(params)
     bnAll = -sphModalCoeffs(simulationOrder, 2*pi*f/C * params.smaRadius, ...
         params.arrayType, params.dirCoeff).';
 
-    pMics = zeros(numMics, numShsSimulation, nfft);
-    pN = zeros(numShsOut, numShsSimulation, nfft);
+    pMics = zeros(numMics, numShsSimulation, nfft, 'like', bnAll);
+    pN = zeros(numShsOut, numShsSimulation, nfft, 'like', bnAll);
     for k = 1:numPosFreqs
         Bn = diag(sh_repToOrder(bnAll(:,k)));
         pMics(:,:,k) = Y_Hi * Bn;

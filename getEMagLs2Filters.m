@@ -86,8 +86,8 @@ hR = applySubsampleDelay(hR, -grpDR);
 HL = fft(hL);
 HR = fft(hR);
 
-W_MLS_l = zeros(numPosFreqs, numMics);
-W_MLS_r = zeros(numPosFreqs, numMics);
+W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
+W_MLS_r = zeros(numPosFreqs, numMics, 'like', HL);
 for k = 1:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
@@ -115,11 +115,11 @@ if applyDiffusenessConst
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
     
-    M = zeros(numPosFreqs, 2, 2);
-    HCorr = zeros(numPosFreqs, numMics, 2);
-    R = zeros(numPosFreqs, 2, 2);
-    RHat = zeros(numPosFreqs, 2, 2);
-    RCorr = zeros(numPosFreqs, 2, 2);
+    M = zeros(numPosFreqs, 2, 2, 'like', HL);
+    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
+    R = zeros(numPosFreqs, 2, 2, 'like', HL);
+    RHat = zeros(numPosFreqs, 2, 2, 'like', HL);
+    RCorr = zeros(numPosFreqs, 2, 2, 'like', HL);
 
     for ff = 2:numPosFreqs
         % target covariance via original HRTF set
