@@ -99,8 +99,8 @@ for d = 1 : numDirections
     sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
     emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
 
-    % rotate SH represention to impose the desired elevation of incidence
-    euler_matrix  = euler2rotationMatrix(0, pi/2 - hrirGridZenRad(d), 0, 'zyz'); % colatitude to elevation
+    % rotate SH represention to impose the inverted desired elevation of incidence
+    euler_matrix  = euler2rotationMatrix(0, hrirGridZenRad(d) - pi/2, 0, 'zyz'); % colatitude to elevation
     sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
     emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
 

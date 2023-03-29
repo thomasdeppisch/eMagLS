@@ -17,6 +17,7 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+- Fix `getEMagLsFiltersEMAinSH.m` vertical rotation direction (it was inverted before)
 - Update `getSMAIRMatrix.m` to work for higher requested array orders than estimated simulation order
 - Update functions to improve computation performance by pre-allocating complex matrices when needed
 - Update `getEMagLsFiltersEMAinSH.m` to use existing EMA function from the Ambisonic Encoding toolbox
