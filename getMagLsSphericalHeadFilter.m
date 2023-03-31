@@ -5,7 +5,7 @@ SIMULATION_ARRAY_TYPE   = 'rigid'; % see `sphModalCoeffs()`
 SIMULATION_MIC_DIR      = 0; % see `sphModalCoeffs()`
 SIMULATION_C            = 343; % speed of sound in m/s
 
-nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling
+nfft = min(NFFT_MAX_LEN, 2 * len); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).';
 kr = 2*pi*f/SIMULATION_C * micRadius;
 simulationOrder = ceil(fs * pi * micRadius / SIMULATION_C);

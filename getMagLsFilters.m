@@ -32,14 +32,15 @@ if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
 
-nfft = min(2*len, NFFT_MAX_LEN); % apply frequency-domain oversampling
+nfft = min(NFFT_MAX_LEN, 2 * len); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).';
 numPosFreqs = length(f);
-f_cut = 500 * order; % from N > k
+f_cut = max(F_CUT_MIN_FREQ, 500 * order); % from N > k
 k_cut = ceil(f_cut / f(2));
 fprintf('with transition at %d Hz ... ', ceil(f_cut));
 
