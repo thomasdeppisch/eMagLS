@@ -117,7 +117,7 @@ if applyDiffusenessConst
     % response time alignment and a diffuseness constraint"
     
     M = zeros(numPosFreqs, 2, 2, 'like', HL);
-    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
+    HCorr = zeros(numPosFreqs, numMics, 2, 'like', HL);
     R = zeros(numPosFreqs, 2, 2, 'like', HL);
     RHat = zeros(numPosFreqs, 2, 2, 'like', HL);
     RCorr = zeros(numPosFreqs, 2, 2, 'like', HL);
