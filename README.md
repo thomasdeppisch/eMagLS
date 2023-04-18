@@ -17,6 +17,8 @@ Make sure to clone the repository including submodules `git clone --recurse-subm
 This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+- Update `testEMagLs.m` to yield reference names including the status of the diffuseness constraint</br>
+(rename the respective reference rendering filter files)
 - Fix `getEMagLs2Filters.m` when applying the diffuseness constraint
 ### 2023-03-31
 - Update functions to use a transition frequency of at least 1 kHz (this makes a difference only for SH order 1)
