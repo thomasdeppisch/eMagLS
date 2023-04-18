@@ -169,46 +169,10 @@ for k = 1:numPosFreqs
 end
 
 if applyDiffusenessConst
-    warning('Functionality of the diffuseness constraint has not been verified yet.');
-
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
-
-    M = zeros(numPosFreqs, 2, 2, 'like', HL);
-    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
-    R = zeros(numPosFreqs, 2, 2, 'like', HL);
-    RHat = zeros(numPosFreqs, 2, 2, 'like', HL);
-    RCorr = zeros(numPosFreqs, 2, 2, 'like', HL);
-
-    for ff = 2:numPosFreqs
-        % target covariance via original HRTF set
-        H = [HL(ff,:); HR(ff,:)];
-        R(ff,:,:) = 1/numDirections * (H * H');
-        %R(ff,:,:) = H' * W * H;
-        R(abs(imag(R)) < 10e-10) = real(R(abs(imag(R)) < 10e-10)); % neglect small imaginary parts
-        X = chol(squeeze(R(ff,:,:))); % chol factor of covariance of HRTF set
-
-        % covariance of magLS HRTF set after rendering
-        HHat = [W_MLS_l(ff,:); W_MLS_r(ff,:)];
-        RHat(ff,:,:) = 1/(4*pi) * (HHat * smairMat(:,:,ff) * smairMat(:,:,ff)' * HHat');
-        RHat(abs(imag(RHat)) < 10e-10) = real(RHat(abs(imag(RHat)) < 10e-10));
-        XHat = chol(squeeze(RHat(ff,:,:))); % chol factor of magLS HRTF set in SHD
-
-        [U,S,V] = svd(XHat' * X);
-
-        if any(imag(diag(S)) ~= 0) || any(diag(S) < 0)
-            warning('negative or complex singular values, pull out negative/complex and factor into left or right singular vector!')
-        end
-
-        M(ff,:,:) = V * U' * X / XHat;
-        HCorr(ff,:,:) = HHat' * squeeze(M(ff,:,:));
-
-        RCorr(ff,:,:) = 1/(4*pi) * squeeze(HCorr(ff,:,:))' * smairMat(:,:,ff) * smairMat(:,:,ff)' * squeeze(HCorr(ff,:,:));
-    end
-
-    W_MLS_l = conj(HCorr(:,:,1));
-    W_MLS_r = conj(HCorr(:,:,2));
+    error('Functionality of the diffuseness constraint has not been implemented yet.');
 end
 
 % transform into time domain
