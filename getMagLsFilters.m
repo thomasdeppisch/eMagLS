@@ -33,6 +33,7 @@ if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+DIFF_CONST_IMAG_THLD    = 1e-9;
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
@@ -95,35 +96,28 @@ if applyDiffusenessConst
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
 
-    M = zeros(numPosFreqs, 2, 2, 'like', HL);
     HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
-    R = zeros(numPosFreqs, 2, 2, 'like', HL);
-    RHat = zeros(numPosFreqs, 2, 2, 'like', HL);
-    RCorr = zeros(numPosFreqs, 2, 2, 'like', HL);
-
-    for ff = 1:numPosFreqs
+    for k = 1:numPosFreqs
         % target covariance via original HRTF set
-        H = [HL(ff,:); HR(ff,:)];
-        R(ff,:,:) = 1/numDirections * (H * H');
-        R(abs(imag(R)) < 10e-10) = real(R(abs(imag(R)) < 10e-10)); % neglect small imaginary parts
-        X = chol(squeeze(R(ff,:,:))); % chol factor of covariance of HRTF set
+        H = [HL(k,:); HR(k,:)];
+        R = 1/numDirections * (H * H');
+        R_small = abs(imag(R)) < DIFF_CONST_IMAG_THLD;
+        R(R_small) = real(R(R_small)); % neglect small imaginary parts
+        X = chol(R); % chol factor of covariance of HRTF set
 
         % covariance of magLS HRTF set
-        HHat = [W_MLS_l(ff,:); W_MLS_r(ff,:)];
-        RHat(ff,:,:) = 1/(4*pi) * (HHat * HHat');
-        RHat(abs(imag(RHat)) < 10e-10) = real(RHat(abs(imag(RHat)) < 10e-10));
-        XHat = chol(squeeze(RHat(ff,:,:))); % chol factor of magLS HRTF set in SHD
+        HHat = [W_MLS_l(k,:); W_MLS_r(k,:)];
+        RHat = 1/(4*pi) * (HHat * HHat');
+        RHat_small = abs(imag(RHat)) < DIFF_CONST_IMAG_THLD; % neglect small imaginary parts
+        RHat(RHat_small) = real(RHat(RHat_small));
+        XHat = chol(RHat); % chol factor of magLS HRTF set in SHD
 
-        [U,S,V] = svd(XHat' * X);
-
-        if any(imag(diag(S)) ~= 0) || any(diag(S) < 0)
+        [U, s, V] = svd(XHat' * X, 'econ', 'vector');
+        if any(imag(s) ~= 0) || any(s < 0)
             warning('negative or complex singular values, pull out negative/complex and factor into left or right singular vector!')
         end
-
-        M(ff,:,:) = V * U' * X / XHat;
-        HCorr(ff,:,:) = HHat' * squeeze(M(ff,:,:));
-
-        RCorr(ff,:,:) = 1/(4*pi) * squeeze(HCorr(ff,:,:))' * squeeze(HCorr(ff,:,:));
+        M = V * U' * X / XHat;
+        HCorr(k,:,:) = HHat' * M;
     end
     
     W_MLS_l = conj(HCorr(:,:,1));
