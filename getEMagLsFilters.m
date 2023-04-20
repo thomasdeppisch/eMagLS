@@ -134,7 +134,10 @@ if applyDiffusenessConst
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
-    
+
+    % NOTE: Currently, applying the diffuseness constraint to the eMagLS 
+    %       filters causes direction-independent slight magnitude 
+    %       deviations at low frequencies.
     HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
     for k = 2:numPosFreqs
         % target covariance via original HRTF set
