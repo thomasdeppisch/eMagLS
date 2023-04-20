@@ -51,42 +51,32 @@ fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 
-% zero pad and remove group delay with subsample precision
-% (alternative to applying global phase delay later)
-hL(end+1:nfft, :) = 0;
-hR(end+1:nfft, :) = 0;
-grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
-grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
-hL = applySubsampleDelay(hL, -grpDL);
-hR = applySubsampleDelay(hR, -grpDR);
+% estimate group delay, zero pad and remove group delay with subsample
+% precision (this is an alternative to applying global phase delay later)
+grpD = median(cat(3, grpdelay(sum(hL, 2), 1, f, fs), grpdelay(sum(hR, 2), 1, f, fs)));
+h = cat(3, hL, hR);
+clear hL hR;
+h(end+1:nfft, :, :) = 0;
+h = applySubsampleDelay(h, -grpD);
 
-w_LS_l = hL * Y_pinv;
-w_LS_r = hR * Y_pinv;
+w_LS = pagemtimes(h, Y_pinv);
 
 % transform into frequency domain
-HL = fft(hL);
-HR = fft(hR);
-W_LS_l = fft(w_LS_l);
-W_LS_r = fft(w_LS_r);
+H = fft(h);
+W_MLS = fft(w_LS);
 
-W_MLS_l = W_LS_l;
-W_MLS_r = W_LS_r;
 for k = k_cut:numPosFreqs
-    phi_l = angle(W_MLS_l(k-1,:) * Y_conj);
-    phi_r = angle(W_MLS_r(k-1,:) * Y_conj);
+    phi = angle(pagemtimes(W_MLS(k-1, :, :), Y_conj));
 
     if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
-        W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_pinv;
-        W_MLS_r(k,:) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_pinv;
+        W_MLS(k, :, :) = pagemtimes(real(abs(H(k, :, :)) .* exp(1i * phi)), Y_pinv);
     else
         % positive frequencies
-        W_MLS_l(k,:) = abs(HL(k,:)) .* exp(1i * phi_l) * Y_pinv;
-        W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_pinv;
+        W_MLS(k, :, :) = pagemtimes(abs(H(k, :, :)) .* exp(1i * phi), Y_pinv);
         if ~isreal(Y_conj)
             % negative frequencies in case of complex-valued SHs
             k_neg = nfft-k+2;
-            W_MLS_l(k_neg,:) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_pinv;
-            W_MLS_r(k_neg,:) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_pinv;
+            W_MLS(k_neg, :, :) = pagemtimes(abs(H(k_neg, :, :)) .* exp(1i * -phi), Y_pinv);
         end
     end
 end
@@ -96,59 +86,55 @@ if applyDiffusenessConst
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
 
-    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
+    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', H);
     for k = 1:numPosFreqs
         % target covariance via original HRTF set
-        H = [HL(k,:); HR(k,:)];
-        R = 1/numDirections * (H * H');
-        R_small = abs(imag(R)) < DIFF_CONST_IMAG_THLD;
-        R(R_small) = real(R(R_small)); % neglect small imaginary parts
-        X = chol(R); % chol factor of covariance of HRTF set
+        HT = squeeze(H(k, :, :));
+        RT = 1/numDirections * (HT' * HT);
+        RT_small = abs(imag(RT)) < DIFF_CONST_IMAG_THLD;
+        RT(RT_small) = real(RT(RT_small)); % neglect small imaginary parts
+        XT = chol(RT); % chol factor of covariance of HRTF set
 
         % covariance of magLS HRTF set
-        HHat = [W_MLS_l(k,:); W_MLS_r(k,:)];
-        RHat = 1/(4*pi) * (HHat * HHat');
+        HHat = squeeze(W_MLS(k, :, :));
+        RHat = 1/(4*pi) * (HHat' * HHat);
         RHat_small = abs(imag(RHat)) < DIFF_CONST_IMAG_THLD; % neglect small imaginary parts
         RHat(RHat_small) = real(RHat(RHat_small));
         XHat = chol(RHat); % chol factor of magLS HRTF set in SHD
 
-        [U, s, V] = svd(XHat' * X, 'econ', 'vector');
+        [U, s, V] = svd(XHat' * XT, 'econ', 'vector');
         if any(imag(s) ~= 0) || any(s < 0)
             warning('negative or complex singular values, pull out negative/complex and factor into left or right singular vector!')
         end
-        M = V * U' * X / XHat;
-        HCorr(k,:,:) = HHat' * M;
+        M = V * U' * XT / XHat;
+        HCorr(k, :, :) = conj(HHat) * M;
     end
-    
-    W_MLS_l = conj(HCorr(:,:,1));
-    W_MLS_r = conj(HCorr(:,:,2));
+
+    W_MLS = conj(HCorr);
 end
 
 % transform into time domain
 if isreal(Y_conj)
-   W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
-   W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
+   W_MLS = [W_MLS(1:numPosFreqs, :, :); flipud(conj(W_MLS(2:numPosFreqs-1, :, :)))];
 end
-wMlsL = ifft(W_MLS_l);
-wMlsR = ifft(W_MLS_r);
+wMls = ifft(W_MLS);
 if isreal(Y_conj)
-    assert(isreal(wMlsL), 'Resulting decoding filters are not real valued.');
-    assert(isreal(wMlsR), 'Resulting decoding filters are not real valued.');
+    assert(isreal(wMls), 'Resulting decoding filters are not real valued.');
 end
 
 % shift from zero-phase-like to linear-phase-like
 % and restore initial group-delay difference between ears
 n_shift = nfft/2;
-wMlsL = applySubsampleDelay(wMlsL, n_shift);
-wMlsR = applySubsampleDelay(wMlsR, n_shift+grpDR-grpDL);
+wMls = applySubsampleDelay(wMls, cat(3, n_shift, n_shift + diff(grpD)));
 
 % shorten to target length
-wMlsL = wMlsL(n_shift-len/2+1:n_shift+len/2, :);
-wMlsR = wMlsR(n_shift-len/2+1:n_shift+len/2, :);
+wMls = wMls(n_shift-len/2+1:n_shift+len/2, :, :);
 
 % fade
 fade_win = getFadeWindow(len);
-wMlsL = wMlsL .* fade_win;
-wMlsR = wMlsR .* fade_win;
+wMls = wMls .* fade_win;
+
+wMlsL = wMls(:, :, 1);
+wMlsR = wMls(:, :, 2);
 
 end
