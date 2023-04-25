@@ -40,13 +40,6 @@ bn_Lo_df = bn_Lo_df / bn_Lo_df(1);
 % calculate array diffuse-field difference (equivalent to Spherical Head Filter)
 W_Alias = bn_Hi_df ./ bn_Lo_df;
 
-% figure('Name', 'ADF RMS abs');
-% AKp([ifft(AKsingle2bothSidedSpectrum(bn_Hi_df)), ifft(AKsingle2bothSidedSpectrum(bn_Lo_df))], 'm2d', 'fs', fs);
-% AKp(ifft(AKsingle2bothSidedSpectrum(W_Alias)), 'm2d', 'fs', fs, 'c', 'k');
-% legend({'DF High', 'DF Low', 'ADF'}, 'Location', 'SouthEast'); drawnow;
-% 
-% return
-
 % combine with Spherical Head Filter
 [~, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len);
 W_Adf = W_Shf(1:size(W_Alias, 1), :) .* W_Alias;

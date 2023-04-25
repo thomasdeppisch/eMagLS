@@ -49,7 +49,7 @@ DO_PLAYBACK_RENDERING = true;
 % DO_VERIFY_REFERENCE   = false;
 % DO_OVERRIDE_REFERENCE = true;
 % DO_EXPORT_RENDERING   = false;
-DO_PLAYBACK_RENDERING = false;
+% DO_PLAYBACK_RENDERING = false;
 
 %% load data
 tic; % start measuring execution time

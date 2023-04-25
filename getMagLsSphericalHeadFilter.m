@@ -25,13 +25,6 @@ bn_Lo_df = rms(abs(bn_Lo), 2) * sqrt(size(bn_Lo, 2)) / (4*pi);
 % calculate scattering diffuse-field difference (Spherical Head Filter)
 W_Shf = bn_Hi_df ./ bn_Lo_df;
 
-% figure('Name', 'SHF RMS abs');
-% AKp([ifft(AKsingle2bothSidedSpectrum(bn_Hi_df)), ifft(AKsingle2bothSidedSpectrum(bn_Lo_df))], 'm2d', 'fs', fs);
-% AKp(ifft(AKsingle2bothSidedSpectrum(W_Shf)), 'm2d', 'fs', fs, 'c', 'k');
-% legend({'DF High', 'DF Low', 'SHF'}, 'Location', 'SouthEast'); drawnow;
-% 
-% return
-
 % invert spectrum
 W_Shf = 1 ./ W_Shf;
 
