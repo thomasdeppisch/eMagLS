@@ -11,12 +11,13 @@ For more information and if you want to reference the code please [refer to the 
    
 The file `testEMagLS.m` contains an example on how to obtain the filters and apply them to an SMA recording. It also provides the opportunity to listen and compare the different renderers.
 
-Make sure to clone the repository including submodules `git clone --recurse-submodules` or add the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) manually to the `dependencies/` folder.
+Make sure to clone the repository including submodules `git clone --recurse-submodules` or add the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and the [Ambisonic Encoding Toolbox](https://github.com/AppliedAcousticsChalmers/ambisonic-encoding) manually to the `dependencies/` folder.
 
 ## Related Work
-This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform), the [Array Response Simulator](https://github.com/polarch/Array-Response-Simulator.git) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
+This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform), the [Array Response Simulator](https://github.com/polarch/Array-Response-Simulator.git), the [Ambisonic Encoding Toolbox](https://github.com/AppliedAcousticsChalmers/ambisonic-encoding) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
+- Add `ambisonic-encoding` as git submodule (required for `get_sound_field_sh_coeffs_from_ema_t()` in `getEMagLsFiltersEMAinSH.m`)
 - Update header documentation of all functions
 - Remove outdated functions that were used only in preliminary implementations of EMA rendering filters
 - Update `applyRadialFilter.m` to perform causalization and fading analogous to other filtering functions
@@ -128,7 +129,7 @@ This repository depends on the [Spherical Harmonic Transform Library](https://gi
 - Fix all function endings and formatting
 ### 2022-03-16
 - Update `testEMagLs.m` to be verbose about audio playback of rendering results
-- Update `README.md` with information on initializing git submodules 
+- Update `README.md` with information on initializing git submodules
 ### 2021-10-10
 - Initial code release
 

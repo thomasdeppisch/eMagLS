@@ -86,7 +86,6 @@ numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
 emairDir_sh = zeros(nfft, numHarmonics, numDirections);
 for d = 1 : numDirections
-    % TODO: Decide how this function should be made available to this repsitory
     % skip radial filtering here (providing 1 as the argument)!!
     emairDir_sh(:, :, d) = get_sound_field_sh_coeffs_from_ema_t( ...
         emairDir_t(:, :, d), 1, order, micGridAziRad.');
