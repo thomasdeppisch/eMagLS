@@ -1,4 +1,23 @@
 function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
+% [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
+%
+% calculates the inverted spherical head filter to be optionally applied
+% in addition to the MagLS rendering filters
+% see Ben-Hur, Brinkmann, Sheaffer, Weinzierl, Rafaely,
+% "Spectral Equalization in Binaural Signals Represented by Order-Truncated Spherical Harmonics",
+% J. Acoust. Soc. Am., vol. 141, no. 6, pp. 4087–4096, 2017, doi: 10.1121/1.4983652.
+% 
+% wShf                   .. time-domain filter (linear-phase-like with fade-out window)
+% W_Shf                  .. frequency-domain filter (zero-phase-like)
+% micRadius              .. array radius in m
+% order                  .. array SH order
+% fs                     .. sampling frequency in Hz
+% len                    .. desired length of filter
+% 
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
+% Hannes Helmholz, 2023
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `sphModalCoeffs()`

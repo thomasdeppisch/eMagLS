@@ -1,5 +1,6 @@
 function radFilts = getRadialFilter(params)
 % return radial filters
+% 
 % Thomas Deppisch, 2021
 
     if (nargin < 1 || ~isfield(params,'radialFilter'))

@@ -1,6 +1,8 @@
 function binauralOut = binauralDecode(in, inFs, decodingFilterLeft, decodingFilterRight, decodingFilterFs, ...
     compensateDelay, signal, signalFs, horRotAngleRad)
-    % decode SH-domain (Ambisonic) signal to binaural, optionally convolve with mono signal (in case ambisonic signal is a rir)
+    % decode SH-domain (Ambisonic) signal to binaural, optionally convolve 
+    % with mono signal (in case ambisonic signal is a rir)
+    % 
     % Thomas Deppisch, 2021
     
     %% some resampling

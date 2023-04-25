@@ -1,6 +1,28 @@
 function wAdf = getMagLsArrayDiffuseFilter( ...
     micRadius, micGridAziRad, micGridZenRad, order, fs, len, ...
     shDefinition, shFunction)
+% wAdf = getMagLsArrayDiffuseFilter( ...
+%     micRadius, micGridAziRad, micGridZenRad, order, fs, len, ...
+%     shDefinition, shFunction)
+%
+% calculates an array diffuse field equalization filter to be optionally 
+% applied in addition to the MagLS rendering filters  (analogous to the 
+% inverted spherical head filter, not published in this form)
+% 
+% wAdf                   .. time-domain filter (linear-phase-like with fade-out window)
+% micRadius              .. array radius in m
+% micGridAziRad          .. array grid azimuth angles in radians
+% micGridZenRad          .. array grid zenith angles in radians
+% order                  .. array SH order
+% fs                     .. sampling frequency in Hz
+% len                    .. desired length of filter
+% shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
+% shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
+% 
+% This software is licensed under a Non-Commercial Software License 
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
+% Hannes Helmholz, 2023
 
 if nargin < 8; shFunction = @getSH; end
 if nargin < 7 || isempty(shDefinition); shDefinition = 'real'; end

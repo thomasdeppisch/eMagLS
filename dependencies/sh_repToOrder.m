@@ -1,6 +1,8 @@
 function out = sh_repToOrder(in)
 % replicate order weights from size (n-1) to size (n+1)^2 along first
 % dimension
+% 
+% Thomas Deppisch, 2021
 
 n = size(in,1) - 1;
 l = (n+1)^2;

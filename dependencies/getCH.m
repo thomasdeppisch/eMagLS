@@ -1,5 +1,7 @@
 function Y = getCH(order, gridAziRad, shDefinition)
 % yield circular harmonics basis functions
+% 
+% Hannes Helmholz, 2022
 
 if strcmpi(shDefinition, 'complex')
     m = ch_stackOrder(order);

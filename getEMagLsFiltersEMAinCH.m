@@ -5,7 +5,8 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 %     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
-% This function returns eMagLS binaural decoding filters for equatorial microphone arrays.
+% This function returns eMagLS binaural decoding filters in circular 
+% harmonics for equatorial microphone arrays.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -13,8 +14,8 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 % hR                     .. HRIR set for right ear (numSamples x numDirections)
 % hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)
-% micRadius              .. radius of SMA
-% micGridAziRad          .. SMA grid azimuth angles in radians
+% micRadius              .. radius of EMA
+% micGridAziRad          .. EMA grid azimuth angles in radians
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of eMagLS filters
@@ -29,7 +30,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Hannes Helmholz, 2022
+% Hannes Helmholz, 2023
 
 if nargin < 13; chFunction = @getCH; end
 if nargin < 12; shFunction = @getSH; end

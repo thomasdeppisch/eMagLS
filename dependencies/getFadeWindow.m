@@ -1,5 +1,6 @@
 function fade_win = getFadeWindow(irLen, relFadeLen)
 % return combined fade-in and fade-out window
+% 
 % Hannes Helmholz, 2022
 
     if nargin < 2; relFadeLen = 0.15; end % relative length of result fading window

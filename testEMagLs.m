@@ -9,7 +9,7 @@
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Hannes Helmholz, 2023
 
 clear; clc; close all;
 
