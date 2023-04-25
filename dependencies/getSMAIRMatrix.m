@@ -1,6 +1,6 @@
 function [smairMat, params] = getSMAIRMatrix(params)
 % [smairMat, params] = getSMAIRMatrix(params)
-% 
+%
 % calculates SMAIR transform matrices, i.e. SMA processing (plane-wave radiation,
 % scattering, mic encoding, radial filtering) but without any sources
 %
@@ -17,14 +17,14 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % replaceScatteringByRadFilt    .. {true, false} -> use radial filter as regularized scattering
 %                                  effect to limit gain in equalization filter
 % returnRawDiaphSigs            .. only return mic signals without SH transform at the output
-% 
+%
 % Further parameters:
 % smaDesignAziZenRad, order, fs, smaRadius, sourceDist,
 % noiseGainDb, oversamplingFactor, irLen, dirCoeff, shDefinition, shFunction
 %
 % Most parameters have default options! (default is a plane-wave em32 simulation)
 %
-% This software is licensed under a Non-Commercial Software License 
+% This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
 % Thomas Deppisch, 2021
@@ -85,13 +85,13 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if (nargin < 1 || ~isfield(params,'shFunction'))
         params.shFunction = @getSH;
     end
-    
+
     C = 343; % speed of sound in m/s
 
     nfft = params.oversamplingFactor * params.irLen;
     f = linspace(0, params.fs/2, nfft/2+1).';
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
-    
+
     % determine simulation order based on Rafaely aliasing frequency
     % (or use requested array order if higher)
     simulationOrder = max([params.order, ceil(params.fs * pi * params.smaRadius / C)]);
@@ -99,7 +99,6 @@ function [smairMat, params] = getSMAIRMatrix(params)
     numShsOut = (params.order+1)^2;
     numPosFreqs = length(f);
     numMics = size(params.smaDesignAziZenRad, 1);
-
     % include actual microphone processing to simulate aliasing
     Y_Hi = params.shFunction(simulationOrder, params.smaDesignAziZenRad, params.shDefinition);
     Y_Lo_pinv = pinv(Y_Hi(:, 1:numShsOut));
@@ -141,7 +140,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
         smairMat = pMics;
     else
         smairMat = pN;
-        
+
         if ~strcmpi(params.radialFilter, 'none')
             % apply radial filtering
             radFilts = getRadialFilter(params).';

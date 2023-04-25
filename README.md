@@ -2,7 +2,7 @@
 The End-to-End Magnitude Least Squares Binaural Renderer for Spherical Microphone Array Signals.
 
 This repository contains MATLAB functions to obtain binaural rendering filters for the least squares (LS) method, the magnitude least squares (MagLS) method, and the newly proposed End-to-End MagLS methods using SH-domain processing (eMagLS) and using (raw) microphone signals (eMagLS2).
-For more information and if you want to reference the code please refer to
+For more information and if you want to reference the code please [refer to the publication](https://research.chalmers.se/publication/528436/file/528436_Fulltext.pdf)
    
    ```
    T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
@@ -14,7 +14,7 @@ The file `testEMagLS.m` contains an example on how to obtain the filters and app
 Make sure to clone the repository including submodules `git clone --recurse-submodules` or add the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) manually to the `dependencies/` folder.
 
 ## Related Work
-This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
+This repository depends on the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform), the [Array Response Simulator](https://github.com/polarch/Array-Response-Simulator.git) and uses a publicly accessible [HRIR set](https://zenodo.org/record/3928297) for demonstration purposes. It further uses an excerpt of an em32 recording from the [3D-MARCo library](https://zenodo.org/record/3477602). Files from external sources are subject to their corresponding licenses.
 
 ## Changelog
 - Update `getMagLsFilters.m` to improve computation speed by matricizing all operations for both ears</br>
