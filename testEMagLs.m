@@ -74,6 +74,7 @@ fprintf('Downloading SMA recording ... ');
 if isfile(smaRecordingFile)
     fprintf('already exists ... skipped.\n');
 else
+    fprintf('this may take a while on the first run ... ');
     downloadAndExtractFile(smaRecordingFile, smaRecordingUrl);
 end
 
@@ -157,7 +158,7 @@ if DO_VERIFY_REFERENCE
             fprintf('done.\n');
         
             refFile = sprintf(refFiles, refShDefinition, refMagLS);
-            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            fprintf('Verifying MagLS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wMlsL, ref.wMlsL);
             assertAllClose(wMlsR, ref.wMlsR);
@@ -165,7 +166,7 @@ if DO_VERIFY_REFERENCE
             fprintf('done.\n');
         
             refFile = sprintf(refFiles, refShDefinition, refeMagLS);
-            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            fprintf('Verifying eMagLS rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wEMlsL, ref.wEMlsL);
             assertAllClose(wEMlsR, ref.wEMlsR);
@@ -173,7 +174,7 @@ if DO_VERIFY_REFERENCE
             fprintf('done.\n');
         
             refFile = sprintf(refFiles, refShDefinition, refeMagLS2);
-            fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
+            fprintf('Verifying eMagLS2 rendering filters against "%s" ... ', refFile);
             ref = load(refFile);
             assertAllClose(wEMls2L, ref.wEMls2L);
             assertAllClose(wEMls2R, ref.wEMls2R);

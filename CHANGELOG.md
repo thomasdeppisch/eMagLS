@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update `testEMagLs.m` documentation
 - Fix missing `Spherical-Harmonic-Transform` git submodule
 - Update header documentation in filter functions
 - Add `CHANGELOG.md` with changelog moved from `README.md`
