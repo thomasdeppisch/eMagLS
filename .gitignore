@@ -31,6 +31,9 @@
 *.zip
 /.idea/
 
+# optional dependencies
+/dependencies/miro.m
+
 # optional submodules with alternative SH basis function implementations
 /dependencies/AKtools/
 /dependencies/soundfieldsynthesis/

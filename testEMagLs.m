@@ -61,7 +61,16 @@ else
 end
 
 fprintf('Loading file "%s" ... ', hrirFile);
+% the data fields will be incorrect if a different HRIR data set is used
 load(hrirFile);
+if isa(HRIR_L2702, 'uint32') || isempty(HRIR_L2702)
+    % MIRO class does not exist on the system and will be downloaded
+    fprintf('Downloading MIRO class ... ');
+    downloadAndExtractFile('dependencies/miro.m', 'https://zenodo.org/record/3928297/files/miro.m');
+    % Retry loading file
+    fprintf('Loading file "%s" ... ', hrirFile);
+    load(hrirFile);
+end
 hL = double(HRIR_L2702.irChOne);
 hR = double(HRIR_L2702.irChTwo);
 hrirGridAziRad = double(HRIR_L2702.azimuth.');
