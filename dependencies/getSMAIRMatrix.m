@@ -156,4 +156,11 @@ function [smairMat, params] = getSMAIRMatrix(params)
             end
         end
     end
+
+    % TODO: resolve system-dependent differences in resulting eMagLS and eMagLS2 filters
+    var_name = 'smairMat';
+    file_name = strjoin([flip({dbstack().name}), var_name, computer('arch'), ...
+        ver('MATLAB').Release, getenv('USER')], '_');
+    warning('Debugging export of "%s".', file_name);
+    save([file_name, '.mat'], var_name);
 end

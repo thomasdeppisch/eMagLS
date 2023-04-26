@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update `getSMAIRMatrix.m` to export data for debugging of system-dependent differences in resulting rendering filters
 - Update `testEMagLs.m` to download the MIRO class if it is not available for loading the default HRIR data set
 - Update `testEMagLs.m` documentation
 - Fix missing `Spherical-Harmonic-Transform` git submodule
