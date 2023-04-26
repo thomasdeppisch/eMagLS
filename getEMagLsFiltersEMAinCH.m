@@ -5,12 +5,16 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 %     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction, chFunction)
 %
-% This function returns eMagLS binaural decoding filters in circular 
-% harmonics for equatorial microphone arrays.
+% This function calculates eMagLS binaural decoding filters in circular harmonics
+% for equatorial microphone arrays, allowing for 1-DOF head rotations.
+% For more information, please refer to
+%   H. Helmholz, T. Deppisch, and J. Ahrens,
+%   “End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,”
+%   in Fortschritte der Akustik -- DAGA 2023, 2023, pp. 1679–1682.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
-% hL                     .. HRIR set for left e ar (numSamples x numDirections)
+% hL                     .. HRIR set for left ear (numSamples x numDirections)
 % hR                     .. HRIR set for right ear (numSamples x numDirections)
 % hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)

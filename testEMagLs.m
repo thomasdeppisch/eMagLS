@@ -14,7 +14,6 @@
 clear; clc; close all;
 
 addpath(genpath('dependencies/'));
-addpath(genpath('../'));
 
 %% configuration
 filterLen = 512;

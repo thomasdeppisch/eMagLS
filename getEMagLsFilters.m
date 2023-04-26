@@ -5,14 +5,15 @@ function [wMlsL, wMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRa
 %     micRadius, micGridAziRad, micGridZenRad, order, fs, len, applyDiffusenessConst, ...
 %     shDefinition, shFunction)
 %
-% This function returns eMagLS binaural decoding filters.
-% For more information about the renderer, please refer to 
-% T. Deppisch, H. Helmholz, J. Ahrens, "End-to-End Magnitude Least Squares Binaural Rendering 
-% of Spherical Microphone Array Signals," International 3D Audio Conference (I3DA), 2021.
+% This function calculates eMagLS binaural decoding filters for spherical microphone arrays.
+% For more information, please refer to
+%   T. Deppisch, H. Helmholz, and J. Ahrens,
+%   “End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,”
+%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), 2021, pp. 1–7. doi: 10.1109/I3DA48870.2021.9610864.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
-% hL                     .. HRIR set for left e ar (numSamples x numDirections)
+% hL                     .. HRIR set for left ear (numSamples x numDirections)
 % hR                     .. HRIR set for right ear (numSamples x numDirections)
 % hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
 % hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)

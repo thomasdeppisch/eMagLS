@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update header documentation in filter functions
 - Add `CHANGELOG.md` with changelog moved from `README.md`
 - Update `README.md` with references to the EMA publication 
 - Add `ambisonic-encoding` as git submodule (required for `get_sound_field_sh_coeffs_from_ema_t()` in `getEMagLsFiltersEMAinSH.m`)
