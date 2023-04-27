@@ -133,7 +133,7 @@ for k = 2:numPosFreqs
         end
     end
 
-    if ~isreal(Y_hor_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
+    if ~isreal(Y_hor_conj) && (k < numPosFreqs || mod(nfft, 2)) % is odd
         % TODO: Fix the generation / rendering for complex SHs
         warning('The rendering filters for "complex" SH basis types do not function as intended yet.');
 
@@ -190,7 +190,8 @@ if applyDiffusenessConst
     W_MLS_r = conj(HCorr(:,:,2));
 end
 
-% mamnually set the DC bin
+% mamnually set the DC bin (use `real()` instead of `abs()`, which causes 
+% strong a magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 

@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update eMagLS functions documentation when manually setting the DC bin after calculation
 - Update eMagLS functions to manually set the DC bin after calculation</br>
 (therefore the reference for the rendering filters are updated for verification)
 - Update `testEMagLs.m` to download the MIRO class if it is not available for loading the default HRIR data set
