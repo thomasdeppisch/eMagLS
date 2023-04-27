@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update `testEMagLs.m` to not perform validation of the rendering filters against the reference by default
 - Update eMagLS functions documentation when manually setting the DC bin after calculation
 - Update eMagLS functions to manually set the DC bin after calculation</br>
 (therefore the reference for the rendering filters are updated for verification)
