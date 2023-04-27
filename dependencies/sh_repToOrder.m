@@ -1,9 +1,12 @@
 function out = sh_repToOrder(in)
 % replicate order weights from size (n-1) to size (n+1)^2 along first
 % dimension
+% 
+% Thomas Deppisch, 2023
+
 n = size(in,1) - 1;
 l = (n+1)^2;
-out = zeros(l, size(in,2));
+out = zeros(l, size(in,2), 'like', in);
 %nm2acn = @(n_,m_) n_.^2 + m_ + n_ + 1;
 
 for nn = 0:n

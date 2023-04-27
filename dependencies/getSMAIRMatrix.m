@@ -1,30 +1,33 @@
 function [smairMat, params] = getSMAIRMatrix(params)
-    % returns the SMAIR transform matrices, i.e. SMA processing (plane-wave
-    % radiation, scattering, mic encoding, radial filtering) but without
-    % any sources
-    %
-    % smairMat .. numShsSimulation x numShsOut x numFreqs
-    %          .. or (if returnRawMicSigs) numShsSimulation x numMics x numFreqs
-    %
-    % some params are limited to the following options:
-    % arrayType: {'rigid', 'open'}
-    % radialFilter: {'none', 'full', 'regul', 'softLimit', 'em32-zStyle', 'em32-zStyle-ffEq'}
-    % waveModel: {'planeWave', 'pointSource'}
-    % simulateAliasing: {true, false}
-    % zStyleMaxRe: {0, 1}
-    % replaceScatteringByRadFilt = {true, false} -> use radial filter as
-    % regularized scattering effect to limit gain in equalization filter
-    % returnRawDiaphSigs .. only return mic signals without SH transform at
-    %                       the output
-    % 
-    % further params:
-    % smaDesignAziZenRad, order, simulationOrder, fs, smaRadius,
-    % sourceDist, noiseGainDb, oversamplingFactor, irLen
-    %
-    % most parameters have default options! (default is a plane-wave em32
-    % simulation)
-    %
-    % Thomas Deppisch, 2021
+% [smairMat, params] = getSMAIRMatrix(params)
+%
+% calculates SMAIR transform matrices, i.e. SMA processing (plane-wave radiation,
+% scattering, mic encoding, radial filtering) but without any sources
+%
+% smairMat      .. numShsOut x numShsSimulation x numFreqs
+%               .. or (if returnRawMicSigs) numMics x numShsSimulation x numFreqs
+% params        .. updated parameters
+%
+% Some parameters are limited to the following options:
+% arrayType                     .. {'rigid', 'open'}
+% radialFilter                  .. {'none', 'full', 'regul', 'softLimit', 'em32-zStyle', 'em32-zStyle-ffEq'}
+% waveModel                     .. {'planeWave', 'pointSource'}
+% simulateAliasing              .. {true, false}
+% zStyleMaxRe                   .. {0, 1}
+% replaceScatteringByRadFilt    .. {true, false} -> use radial filter as regularized scattering
+%                                  effect to limit gain in equalization filter
+% returnRawDiaphSigs            .. only return mic signals without SH transform at the output
+%
+% Further parameters:
+% smaDesignAziZenRad, order, fs, smaRadius, sourceDist,
+% noiseGainDb, oversamplingFactor, irLen, dirCoeff, shDefinition, shFunction
+%
+% Most parameters have default options! (default is a plane-wave em32 simulation)
+%
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+%
+% Thomas Deppisch, 2023
     
     % parse params
     if (nargin < 1 || ~isfield(params,'smaDesignAziZenRad'))
@@ -49,11 +52,11 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if (nargin < 1 || ~isfield(params,'radialFilter'))
         params.radialFilter = 'regul';
     end
-    if (nargin < 1 || ~isfield(params,'simulationOrder'))
-        params.simulationOrder = 32;
-    end
     if (nargin < 1 || ~isfield(params,'sourceDist'))
         params.sourceDist = 2;
+    end
+    if (nargin < 1 || ~isfield(params,'dirCoeff'))
+        params.dirCoeff = 0;
     end
     if (nargin < 1 || ~isfield(params,'waveModel'))
         params.waveModel = 'planeWave';
@@ -79,68 +82,78 @@ function [smairMat, params] = getSMAIRMatrix(params)
     if (nargin < 1 || ~isfield(params,'shDefinition'))
         params.shDefinition = 'real';
     end
-    if (nargin < 1 || ~isfield(params,'dirCoeff'))
-        params.dirCoeff = 0;
+    if (nargin < 1 || ~isfield(params,'shFunction'))
+        params.shFunction = @getSH;
     end
-    
-    c = 343;
-    nfft = params.oversamplingFactor*params.irLen;
-    f = linspace(0,params.fs/2,nfft/2+1)';
-    k = 2*pi*f/c;
-    kr = k * params.smaRadius;
+
+    C = 343; % speed of sound in m/s
+
+    nfft = params.oversamplingFactor * params.irLen;
+    f = linspace(0, params.fs/2, nfft/2+1).';
     params.sourceDist = norm(params.sourcePosCart); % if params.sourcePosCart is set this will overwrite the sourceDist setting!
-    %krSource = k * params.sourceDist;
+
+    % determine simulation order based on Rafaely aliasing frequency
+    % (or use requested array order if higher)
+    simulationOrder = max([params.order, ceil(params.fs * pi * params.smaRadius / C)]);
+    numShsSimulation = (simulationOrder+1)^2;
     numShsOut = (params.order+1)^2;
-    numShsSimulation = (params.simulationOrder+1)^2;
-    numFreqs = length(k);
+    numPosFreqs = length(f);
     numMics = size(params.smaDesignAziZenRad, 1);
-    
     % include actual microphone processing to simulate aliasing
-    YMics = getSH(params.simulationOrder, params.smaDesignAziZenRad, params.shDefinition).';    
-    YMicsLow = YMics(1:(params.order+1)^2, :);
+    Y_Hi = params.shFunction(simulationOrder, params.smaDesignAziZenRad, params.shDefinition);
+    Y_Lo_pinv = pinv(Y_Hi(:, 1:numShsOut));
 
-    bnAll = sphModalCoeffs(params.simulationOrder, kr.', params.arrayType, params.dirCoeff); % todo: add spherical waves
-    bnAll(end,:) = real(bnAll(end,:));
+    % set radial filtering for waveModel + arrayType combination
+    if strcmpi(params.waveModel, 'pointSource')
+        % TODO: Add spherical waves
+        error('WaveModel parameter "%s" not yet implemented.', params.waveModel);
+    end
+    % TODO: It is not quite clear why there is a minus required here for
+    % the rendered BRIRs to start with a positive peak (which seems
+    % reasonable). Without the minus, the resulting BRIRs are inverted.
+    bnAll = -sphModalCoeffs(simulationOrder, 2*pi*f/C * params.smaRadius, ...
+        params.arrayType, params.dirCoeff).';
 
-    pMics = zeros(numMics, numShsSimulation, nfft);
-
-    for ii = 1:numFreqs
-        Bn = diag(sh_repToOrder(bnAll(ii,:).').');
-        pMics(:,:,ii) = YMics.' * Bn;
-
-        if ii > 1 && ii < numFreqs
-            pMics(:,:,end-ii+2) = YMics.' * conj(Bn);
+    pMics = zeros(numMics, numShsSimulation, nfft, 'like', bnAll);
+    pN = zeros(numShsOut, numShsSimulation, nfft, 'like', bnAll);
+    for k = 1:numPosFreqs
+        Bn = diag(sh_repToOrder(bnAll(:,k)));
+        pMics(:,:,k) = Y_Hi * Bn;
+        if k == numPosFreqs && ~mod(nfft, 2) % is even
+            pMics(:,:,k) = Y_Hi * real(Bn);
+        elseif ~isreal(Y_Hi) && k > 1
+            k_neg = nfft-k+2;
+            pMics(:,:,k_neg) = Y_Hi * conj(Bn);
         end
-    end
 
-    pMics(isnan(pMics)) = 0; % remove singularity for f = 0
-
-    pN = zeros(numShsOut, numShsSimulation, nfft);
-    pinvYMicsLow = pinv(YMicsLow.');
-    for ii = 1:nfft
-        pN(:,:,ii) = pinvYMicsLow * pMics(:,:,ii);
-    end
-
-    % apply radial filtering
-    if (~strcmp(params.radialFilter, 'none'))
-        radFilts = getRadialFilter(params);
-
-        smairMat = zeros(numShsOut, numShsSimulation, nfft);
-        for ii = 1:numFreqs
-            BnTi = diag(sh_repToOrder(radFilts(ii,:).').');
-            smairMat(:,:,ii) = BnTi * pN(:,:,ii);
-
-            if ii > 1 && ii < numFreqs
-                smairMat(:,:,end-ii+2) = conj(BnTi) * pN(:,:,ii);
+        if ~params.returnRawMicSigs
+            pN(:,:,k) = Y_Lo_pinv * pMics(:,:,k);
+            if k == numPosFreqs && ~mod(nfft, 2) % is even
+                pN(:,:,k) = Y_Lo_pinv * real(pMics(:,:,k));
+            elseif ~isreal(Y_Hi) && k > 1
+                pN(:,:,k_neg) = Y_Lo_pinv * pMics(:,:,k_neg);
             end
         end
-
-        smairMat(isnan(smairMat)) = 0;
-    else
-        smairMat = pN;
     end
 
     if params.returnRawMicSigs
         smairMat = pMics;
+    else
+        smairMat = pN;
+
+        if ~strcmpi(params.radialFilter, 'none')
+            % apply radial filtering
+            radFilts = getRadialFilter(params).';
+            for k = 1:numPosFreqs
+                BnTi = diag(sh_repToOrder(radFilts(:,k)));
+                smairMat(:,:,k) = BnTi * smairMat(:,:,k);
+                if k == numPosFreqs && ~mod(nfft, 2) % is even
+                    smairMat(:,:,k) = real(BnTi) * smairMat(:,:,k);
+                elseif ~isreal(Y_Hi) && k > 1
+                    k_neg = nfft-k+2;
+                    smairMat(:,:,k_neg) = conj(BnTi) * smairMat(:,:,k_neg);
+                end
+            end
+        end
     end
-    
+end
