@@ -64,6 +64,6 @@ function radFilts = getRadialFilter(params)
     end
 
     if ~mod(nfft, 2) % is even
-        radFilts(end, :) = real(radFilts(end, :)); % Nyquist bin
+        radFilts(end, :) = abs(radFilts(end, :)); % Nyquist bin
     end
 end

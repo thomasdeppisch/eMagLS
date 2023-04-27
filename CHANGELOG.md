@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update `getRadialFilter.m` to set the Nyquist bin for even-length filters after calculation
 - Update eMagLS functions with error message when applying the diffuseness constraint with "complex" SH conventions (this is not implemented yet)
 - Update `testEMagLs.m` to not perform validation of the rendering filters against the reference by default
 - Update eMagLS functions documentation when manually setting the DC bin after calculation
