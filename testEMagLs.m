@@ -16,15 +16,8 @@ clear; clc; close all;
 addpath(genpath('dependencies/'));
 
 %% configuration
-filterLen = 512;
+filterLen = 512; % in samples
 applyDiffusenessConst = false; % or e.g. true, for MagLS, eMagLS and eMagLS2
-
-shFunction   = @getSH; % from Spherical-Harmonic-Transform toolbox
-shDefinition = 'real'; % or e.g. 'complex'
-
-% % An alternative version which uses a different SH basis convention and implementation
-% shFunction   = @getSH_AmbiEnc; % from Ambisonic Encoding toolbox
-% shDefinition = 'real'; % or e.g. 'complex'
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
@@ -100,22 +93,30 @@ fprintf('done.\n\n');
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
 fprintf('Computing LS rendering filters ... at N=%d ... with %d samples ... ', ...
     shOrder, size(hL, 1));
-[wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder, ...
-    shDefinition, shFunction);
+[wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, shOrder);
 fprintf('done.\n');
 
 fprintf('Computing MagLS rendering filters ... at N=%d ... with %d samples ... ', ...
     shOrder, filterLen);
 [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    shOrder, fs, filterLen, applyDiffusenessConst, shDefinition, shFunction);
+    shOrder, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
     shOrder, filterLen);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-    applyDiffusenessConst, shDefinition, shFunction);
+    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst);
 fprintf('done.\n');
+
+% % e.g. with a different SH basis convention and  implementation
+% shDefinition = 'complex'; % or e.g. 'real'
+% shFunction   = @getSH_AmbiEnc; % from Ambisonic Encoding toolbox
+% fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
+%     shOrder, filterLen);
+% [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
+%     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst, ...
+%     shDefinition, shFunction);
+% fprintf('done.\n');
 
 % For EMA
 % [wEMlsL, wEMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
@@ -125,11 +126,15 @@ fprintf('done.\n');
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-    applyDiffusenessConst, shDefinition, shFunction);
+    applyDiffusenessConst);
 fprintf('done.\n\n');
 
 %% verify rendering filters against provided reference
 [hrirPath, refFiles, ~] = fileparts(hrirFile);
+if ~exist('shDefinition', 'var')
+    % according to the default parameter in the rendering filter functions
+    shDefinition = 'real';
+end
 refShDefinition = shDefinition;
 refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%%s_%%s', ...
     refFiles, filterLen, size(micGridAziRad, 1), shOrder);
@@ -232,6 +237,10 @@ end
 
 %% SH transform and radial filter (for LS and conventional MagLS)
 fprintf('Transforming recording into SH domain ... at N=%d ... ', shOrder);
+if ~exist('shFunction', 'var')
+    % according to the default parameter in the rendering filter functions
+    shFunction = @getSH;
+end
 E = shFunction(shOrder, [micGridAziRad, micGridZenRad], shDefinition).';
 shRecording = smaRecording * pinv(E);
 fprintf('done.\n');

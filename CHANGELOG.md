@@ -1,6 +1,8 @@
 # Changelog
 
 ### Unreleased
+- Update `testEMagLs.m` to remove the `shFunction` and `shDefinition` parameters</br>
+(therefore the default values "@getSH" and "real" of the rendering filter functions will be used)
 - Fix `getEMagLs2Filters.m` to parse the number of optional function parameters correctly
 - Fix `getCH.m` to add missing function `ch_stackOrder()` (was accidentally removed before)
 - Update `getRadialFilter.m` to set the Nyquist bin for even-length filters after calculation
