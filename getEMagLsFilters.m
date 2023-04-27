@@ -91,7 +91,7 @@ HR = fft(hR);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
 W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
-for k = 1:numPosFreqs
+for k = 2:numPosFreqs
     % positive frequencies
     pwGrid = smairMat(:,:,k) * Y_Hi_conj;
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
