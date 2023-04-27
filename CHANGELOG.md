@@ -1,8 +1,8 @@
 # Changelog
 
 ### Unreleased
-- Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to manually set the DC bin after calculation
-- Update `getEMagLsFilters.m` with temporary fix leaving out the DC bin
+- Update eMagLS functions to manually set the DC bin after calculation</br>
+(therefore the reference for the rendering filters are updated for verification)
 - Update `testEMagLs.m` to download the MIRO class if it is not available for loading the default HRIR data set
 - Update `testEMagLs.m` documentation
 - Fix missing `Spherical-Harmonic-Transform` git submodule

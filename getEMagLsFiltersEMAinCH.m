@@ -111,7 +111,7 @@ HR = fft(hR);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
 W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
-for k = 1:numPosFreqs
+for k = 2:numPosFreqs
     % positive frequencies
     pwGrid_CH = smairMat_CH(:,:,k); % circular harmonics
     [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
@@ -189,6 +189,10 @@ if applyDiffusenessConst
     W_MLS_l = conj(HCorr(:,:,1));
     W_MLS_r = conj(HCorr(:,:,2));
 end
+
+% mamnually set the DC bin
+W_MLS_l(1, :) = real(W_MLS_l(2, :));
+W_MLS_r(1, :) = real(W_MLS_r(2, :));
 
 % transform into time domain
 if isreal(Y_hor_conj)

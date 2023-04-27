@@ -150,8 +150,8 @@ if applyDiffusenessConst
 end
 
 % mamnually set the DC bin
-W_MLS_l(1, :) = abs(W_MLS_l(2, :));
-W_MLS_r(1, :) = abs(W_MLS_r(2, :));
+W_MLS_l(1, :) = real(W_MLS_l(2, :));
+W_MLS_r(1, :) = real(W_MLS_r(2, :));
 
 % transform into time domain
 W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
