@@ -22,7 +22,7 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Thomas Deppisch, 2023
 
 if nargin < 7; shFunction = @getSH; end
 if nargin < 6 || isempty(shDefinition); shDefinition = 'real'; end

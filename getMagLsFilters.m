@@ -3,7 +3,8 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     order, fs, len, applyDiffusenessConst, shDefinition, shFunction)
 %
-% This function calculates MagLS binaural decoding filters for head related impulse response data sets.
+% This function calculates MagLS binaural decoding filters for head related 
+% impulse response data sets.
 % For more information, please refer to
 %   Schörkhuber, Zaunschirm, and Hoeldrich,
 %   “Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,”
@@ -25,7 +26,7 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Thomas Deppisch, 2023
 
 if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end

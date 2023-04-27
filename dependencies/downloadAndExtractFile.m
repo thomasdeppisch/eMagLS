@@ -1,4 +1,11 @@
 function downloadAndExtractFile(file, url)
+    % Download a file from specified URL to the designated target location.
+    % 
+    % If the provided file in the URL as a ZIP archive, then a file with a
+    % name identical to the target will be extracted.
+    %
+    % Hannes Helmholz, 2023
+
     [filePath, fileName, fileExt] = fileparts(file);
     fileName = [fileName, fileExt];
     [~, ~] = mkdir(filePath); % ignore warning if directory already exists

@@ -27,7 +27,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Thomas Deppisch, 2023
     
     % parse params
     if (nargin < 1 || ~isfield(params,'smaDesignAziZenRad'))

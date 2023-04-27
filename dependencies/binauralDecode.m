@@ -3,7 +3,7 @@ function binauralOut = binauralDecode(in, inFs, decodingFilterLeft, decodingFilt
     % decode SH-domain (Ambisonic) signal to binaural, optionally convolve 
     % with mono signal (in case ambisonic signal is a rir)
     % 
-    % Thomas Deppisch, 2021
+    % Thomas Deppisch, 2023
     
     %% some resampling
     if (nargin > 6)

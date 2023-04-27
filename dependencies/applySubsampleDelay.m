@@ -1,5 +1,8 @@
 function sig = applySubsampleDelay(sig, delay_samples)
-    
+    % apply a time delay with sub-sample precision to an input signal
+    %
+    % Hannes Helmholz, 2023
+
     % generate double-sided delay spectrum
     omega = linspace(0, 0.5, size(sig, 1)/2+1).';
     exp_omega = exp(-1j * 2 * pi * omega .* delay_samples);

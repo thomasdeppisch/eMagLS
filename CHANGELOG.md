@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update function header documentation and year
 - Add `resources/Acappella_Eigenmike_Raw_32ch_short.wav` again to not download a large ZIP file when executing the example for the first time
 - Update `testEMagLs.m` to remove the `applyDiffusenessConst` parameter</br>
 (therefore the default value "false" of the rendering filter functions will be used)

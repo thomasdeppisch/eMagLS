@@ -1,8 +1,8 @@
 function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 % [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 %
-% This function calculates the inverted spherical head filter to be optionally
-% applied in addition to the MagLS rendering filters.
+% This function calculates the inverted spherical head filter to be 
+% optionally applied in addition to the MagLS rendering filters.
 % For more information, please refer to
 %   Ben-Hur, Brinkmann, Sheaffer, Weinzierl, Rafaely,
 %   "Spectral Equalization in Binaural Signals Represented by Order-Truncated Spherical Harmonics",

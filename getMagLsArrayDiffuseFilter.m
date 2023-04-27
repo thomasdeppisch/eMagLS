@@ -6,10 +6,10 @@ function wAdf = getMagLsArrayDiffuseFilter( ...
 %     shDefinition, shFunction)
 %
 % This function calculates an array diffuse field equalization filter to be
-% optionally applied in addition to the MagLS rendering filters, analogous to
-% the inverted spherical head filter.
-# This method is currently not published, as it does not seem to always improve
-% the rendering results.
+% optionally applied in addition to the MagLS rendering filters, analogous 
+% to the inverted spherical head filter.
+% This method is currently not published, as it does not seem to always 
+% improve the rendering results.
 % 
 % wAdf                   .. time-domain filter (linear-phase-like with fade-out window)
 % micRadius              .. array radius in m

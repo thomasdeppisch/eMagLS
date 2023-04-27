@@ -1,7 +1,7 @@
 function radFilts = getRadialFilter(params)
 % return radial filters
 % 
-% Thomas Deppisch, 2021
+% Thomas Deppisch, 2023
 
     if (nargin < 1 || ~isfield(params,'radialFilter'))
         params.radialFilter = 'tikhonov';

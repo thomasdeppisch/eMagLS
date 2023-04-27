@@ -30,7 +30,7 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 % This software is licensed under a Non-Commercial Software License 
 % (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
 %
-% Thomas Deppisch, 2021
+% Thomas Deppisch, 2023
 
 if nargin < 13; shFunction = @getSH; end
 if nargin < 12 || isempty(shDefinition); shDefinition = 'real'; end

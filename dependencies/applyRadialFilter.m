@@ -1,6 +1,7 @@
 function sigFiltered = applyRadialFilter(inSig, params)
 % apply a radial filter to a SH-domain SMA signal
-% Thomas Deppisch, 2021
+%
+% Thomas Deppisch, 2023
 
 radFilts = getRadialFilter(params);
 radFilts(isnan(radFilts)) = 0;
