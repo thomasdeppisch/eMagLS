@@ -71,14 +71,6 @@ fs = double(HRIR_L2702.fs);
 clear HRIR_L2702;
 fprintf('done.\n');
 
-fprintf('Downloading SMA recording ... ');
-if isfile(smaRecordingFile)
-    fprintf('already exists ... skipped.\n');
-else
-    fprintf('this may take a while on the first run ... ');
-    downloadAndExtractFile(smaRecordingFile, smaRecordingUrl);
-end
-
 fprintf('Loading file "%s" ... ', smaRecordingFile);
 [smaRecording, smaFs] = audioread(smaRecordingFile);
 assert(smaFs == fs, 'Mismatch in sampling frequencies.');
