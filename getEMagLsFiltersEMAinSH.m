@@ -23,10 +23,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of eMagLS filters
-% applyDiffusenessConst  .. {true, false}, apply diffuseness constraint,
-%                           see Zaunschirm, Schoerkhuber, Hoeldrich,
-%                           "Binaural rendering of Ambisonic signals by head-related impulse
-%                           response time alignment and a diffuseness constraint"
+% applyDiffusenessConst  .. {true, false}, apply diffuseness constraint, default: false
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
@@ -37,6 +34,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 
 if nargin < 12; shFunction = @getSH; end
 if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
+if nargin < 10 || isempty(applyDiffusenessConst); applyDiffusenessConst = false; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz

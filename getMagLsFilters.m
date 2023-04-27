@@ -18,10 +18,7 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of magLS filters
-% applyDiffuseFieldConst .. {true, false}, apply diffuse-field constraint,
-%                           see Zaunschirm, Schoerkhuber, Hoeldrich,
-%                           "Binaural rendering of Ambisonic signals by head-related impulse
-%                           response time alignment and a diffuseness constraint"
+% applyDiffusenessConst  .. {true, false}, apply diffuseness constraint, default: false
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
@@ -32,6 +29,7 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 
 if nargin < 10; shFunction = @getSH; end
 if nargin < 9 || isempty(shDefinition); shDefinition = 'real'; end
+if nargin < 8 || isempty(applyDiffusenessConst); applyDiffusenessConst = false; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
