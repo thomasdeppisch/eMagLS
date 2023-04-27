@@ -91,7 +91,7 @@ HR = fft(hR);
 
 W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
 W_MLS_r = zeros(numPosFreqs, numMics, 'like', HL);
-for k = 1:numPosFreqs
+for k = 2:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
@@ -148,6 +148,10 @@ if applyDiffusenessConst
     W_MLS_l = conj(HCorr(:,:,1));
     W_MLS_r = conj(HCorr(:,:,2));
 end
+
+% mamnually set the DC bin
+W_MLS_l(1, :) = abs(W_MLS_l(2, :));
+W_MLS_r(1, :) = abs(W_MLS_r(2, :));
 
 % transform into time domain
 W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
