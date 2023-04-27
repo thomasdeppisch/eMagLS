@@ -97,6 +97,9 @@ for k = 1:numPosFreqs
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.');
+    if f(k) <= 1e3
+        Y_reg_inv_exp(:, :, k) = Y_reg_inv;
+    end
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
@@ -130,6 +133,13 @@ for k = 1:numPosFreqs
         end
     end
 end
+
+% TODO: resolve system-dependent differences in resulting eMagLS and eMagLS2 filters
+var_name = 'Y_reg_inv_exp';
+file_name = strjoin([flip({dbstack().name}), var_name, computer('arch'), ...
+    ver('MATLAB').Release, getenv('USER')], '_');
+warning('Debugging export of "%s".', file_name);
+save([file_name, '.mat'], var_name);
 
 if applyDiffusenessConst 
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
