@@ -1,6 +1,8 @@
 # Changelog
 
 ### Unreleased
+- Update `testEMagLs.m` to remove the `applyDiffusenessConst` parameter</br>
+(therefore the default value "false" of the rendering filter functions will be used)
 - Update functions to use the default value "false" for the `applyDiffusenessConst` parameter
 - Update `testEMagLs.m` to remove the `shFunction` and `shDefinition` parameters</br>
 (therefore the default values "@getSH" and "real" of the rendering filter functions will be used)

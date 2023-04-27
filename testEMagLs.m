@@ -17,7 +17,6 @@ addpath(genpath('dependencies/'));
 
 %% configuration
 filterLen = 512; % in samples
-applyDiffusenessConst = false; % or e.g. true, for MagLS, eMagLS and eMagLS2
 
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
@@ -99,13 +98,13 @@ fprintf('done.\n');
 fprintf('Computing MagLS rendering filters ... at N=%d ... with %d samples ... ', ...
     shOrder, filterLen);
 [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    shOrder, fs, filterLen, applyDiffusenessConst);
+    shOrder, fs, filterLen);
 fprintf('done.\n');
 
 fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
     shOrder, filterLen);
 [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst);
+    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen);
 fprintf('done.\n');
 
 % % e.g. with a different SH basis convention and  implementation
@@ -114,8 +113,8 @@ fprintf('done.\n');
 % fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
 %     shOrder, filterLen);
 % [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, applyDiffusenessConst, ...
-%     shDefinition, shFunction);
+%     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
+%     applyDiffusenessConst, shDefinition, shFunction);
 % fprintf('done.\n');
 
 % For EMA
@@ -125,8 +124,7 @@ fprintf('done.\n');
 
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-    applyDiffusenessConst);
+    micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen);
 fprintf('done.\n\n');
 
 %% verify rendering filters against provided reference
@@ -145,6 +143,10 @@ if strcmp(filesep, '\')
 end
 clear hrirPath;
 
+if ~exist('applyDiffusenessConst', 'var')
+    % according to the default parameter in the rendering filter functions
+    applyDiffusenessConst = false;
+end
 if applyDiffusenessConst
     refDiffusenessConst = 'wDC';
 else
@@ -216,21 +218,19 @@ if DO_OVERRIDE_REFERENCE
     refFile = sprintf(refFiles, refShDefinition, refMagLS);
     fprintf('Exporting MagLS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wMlsL', 'wMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
-        'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+        'shOrder', 'fs', 'filterLen', '-v7');
     fprintf('done.\n');
     
     refFile = sprintf(refFiles, refShDefinition, refeMagLS);
     fprintf('Exporting eMagLS rendering filters to "%s" ... ', refFile);
     save(refFile, 'wEMlsL', 'wEMlsR', 'hrirGridAziRad', 'hrirGridZenRad', ...
-        'micRadius', 'micGridAziRad', 'micGridZenRad', ...
-        'shOrder', 'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+        'micRadius', 'micGridAziRad', 'micGridZenRad', 'shOrder', 'fs', 'filterLen', '-v7');
     fprintf('done.\n');
     
     refFile = sprintf(refFiles, refShDefinition, refeMagLS2);
     fprintf('Exporting eMagLS2 rendering filters to "%s" ... ', refFile);
     save(refFile, 'wEMls2L', 'wEMls2R', 'hrirGridAziRad', 'hrirGridZenRad', ...
-        'micRadius', 'micGridAziRad', 'micGridZenRad', ...
-        'fs', 'filterLen', 'applyDiffusenessConst', '-v7');
+        'micRadius', 'micGridAziRad', 'micGridZenRad', 'fs', 'filterLen', '-v7');
     fprintf('done.\n\n');
     clear refFile;
 end
