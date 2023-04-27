@@ -21,10 +21,9 @@ filterLen = 512; % in samples
 [hrirFile, hrirUrl] = deal('resources/HRIR_L2702.mat', ...
     'https://zenodo.org/record/3928297/files/HRIR_L2702.mat');
 
-[smaRecordingLength, smaRecordingFile, smaRecordingUrl] = deal( ...
-    13.5, ... % in seconds
-    'resources/Acappella_Eigenmike_Raw_32ch.wav', ...
-    'https://zenodo.org/record/3477602/files/09%203D-MARCo%20Samples_Acappella.zip');
+% from https://zenodo.org/record/3477602/files/09%203D-MARCo%20Samples_Acappella.zip
+% smaRecordingLength = 6; % in s, optional
+smaRecordingFile = 'resources/Acappella_Eigenmike_Raw_32ch_short.wav';
 % define SMA geometry for recording file (here Eigenmike EM32)
 shOrder       = 4;
 micRadius     = 0.042; % in m
@@ -82,7 +81,7 @@ end
 fprintf('Loading file "%s" ... ', smaRecordingFile);
 [smaRecording, smaFs] = audioread(smaRecordingFile);
 assert(smaFs == fs, 'Mismatch in sampling frequencies.');
-if size(smaRecording, 1) / fs > smaRecordingLength
+if exist('smaRecordingLength', 'var') && size(smaRecording, 1) / fs > smaRecordingLength
     fprintf('truncating length to %.1f s ... ', smaRecordingLength);
     smaRecording = smaRecording(1:fs * smaRecordingLength, :); % truncate
 end
