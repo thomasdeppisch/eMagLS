@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Fix `getEMagLs2Filters.m` to parse the number of optional function parameters correctly
 - Fix `getCH.m` to add missing function `ch_stackOrder()` (was accidentally removed before)
 - Update `getRadialFilter.m` to set the Nyquist bin for even-length filters after calculation
 - Update eMagLS functions with error message when applying the diffuseness constraint with "complex" SH conventions (this is not implemented yet)

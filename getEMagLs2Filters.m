@@ -35,8 +35,8 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %
 % Thomas Deppisch, 2021
 
-if nargin < 12; shFunction = @getSH; end
-if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
+if nargin < 13; shFunction = @getSH; end
+if nargin < 12 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
