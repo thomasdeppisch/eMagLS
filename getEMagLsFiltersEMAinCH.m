@@ -155,6 +155,8 @@ for k = 2:numPosFreqs
 end
 
 if applyDiffusenessConst
+    assert(strcmpi(shDefinition, 'real'), ...
+        'Diffuseness constraint is not implemented for "%s" SHs yet.', shDefinition);
     % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
     % "Binaural rendering of Ambisonic signals by head-related impulse
     % response time alignment and a diffuseness constraint"
