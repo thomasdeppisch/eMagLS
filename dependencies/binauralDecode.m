@@ -2,7 +2,10 @@ function binauralOut = binauralDecode(in, inFs, decodingFilterLeft, decodingFilt
     compensateDelay, signal, signalFs, horRotAngleRad)
     % decode SH-domain (Ambisonic) signal to binaural, optionally convolve 
     % with mono signal (in case ambisonic signal is a rir)
-    % 
+    %
+    % This software is licensed under a Non-Commercial Software License
+    % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+    %
     % Thomas Deppisch, 2023
     
     %% some resampling

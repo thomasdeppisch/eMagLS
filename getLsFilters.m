@@ -19,8 +19,8 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
-% This software is licensed under a Non-Commercial Software License 
-% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Thomas Deppisch, 2023
 

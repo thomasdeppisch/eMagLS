@@ -1,6 +1,9 @@
 function radFilts = getRadialFilter(params)
 % return radial filters
-% 
+%
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+%
 % Thomas Deppisch, 2023
 
     if (nargin < 1 || ~isfield(params,'radialFilter'))

@@ -1,6 +1,9 @@
 function fade_win = getFadeWindow(irLen, relFadeLen)
 % return combined fade-in and fade-out window
-% 
+%
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+%
 % Hannes Helmholz, 2022
 
     if nargin < 2; relFadeLen = 0.15; end % relative length of result fading window

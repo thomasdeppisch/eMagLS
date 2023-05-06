@@ -15,8 +15,8 @@ function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of filter
 % 
-% This software is licensed under a Non-Commercial Software License 
-% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Hannes Helmholz, 2023
 

@@ -4,6 +4,9 @@ function downloadAndExtractFile(file, url)
     % If the provided file in the URL as a ZIP archive, then a file with a
     % name identical to the target will be extracted.
     %
+    % This software is licensed under a Non-Commercial Software License
+    % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+    %
     % Hannes Helmholz, 2023
 
     [filePath, fileName, fileExt] = fileparts(file);

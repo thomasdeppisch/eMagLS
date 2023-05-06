@@ -1,7 +1,10 @@
 function out = sh_repToOrder(in)
 % replicate order weights from size (n-1) to size (n+1)^2 along first
 % dimension
-% 
+%
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+%
 % Thomas Deppisch, 2023
 
 n = size(in,1) - 1;

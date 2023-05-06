@@ -1,6 +1,9 @@
 function sig = applySubsampleDelay(sig, delay_samples)
     % apply a time delay with sub-sample precision to an input signal
     %
+    % This software is licensed under a Non-Commercial Software License
+    % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+    %
     % Hannes Helmholz, 2023
 
     % generate double-sided delay spectrum

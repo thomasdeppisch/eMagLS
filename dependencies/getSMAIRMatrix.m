@@ -25,7 +25,7 @@ function [smairMat, params] = getSMAIRMatrix(params)
 % Most parameters have default options! (default is a plane-wave em32 simulation)
 %
 % This software is licensed under a Non-Commercial Software License
-% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Thomas Deppisch, 2023
     

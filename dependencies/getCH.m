@@ -1,6 +1,9 @@
 function Y = getCH(order, gridAziRad, shDefinition)
 % yield circular harmonics basis functions
-% 
+%
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+%
 % Hannes Helmholz, 2023
 
 if strcmpi(shDefinition, 'complex')

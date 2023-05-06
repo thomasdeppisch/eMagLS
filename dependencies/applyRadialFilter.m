@@ -1,6 +1,9 @@
 function sigFiltered = applyRadialFilter(inSig, params)
 % apply a radial filter to a SH-domain SMA signal
 %
+% This software is licensed under a Non-Commercial Software License
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
+%
 % Thomas Deppisch, 2023
 
 radFilts = getRadialFilter(params);

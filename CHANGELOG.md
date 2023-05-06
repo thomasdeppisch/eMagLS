@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update or add function header link to license after renaming `master` into `main` branch
 - Update `ambisonic-encoding` submodule to latest version
 - Update eMagLS functions to remove comment that diffuseness constraint used to cause slight magnitude deviations at low frequencies (this was fixed by setting the DC bin)
 - Update function header documentation and year

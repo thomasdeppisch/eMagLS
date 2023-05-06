@@ -29,7 +29,7 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 % chFunction             .. CH basis function, default: @getCH
 %
 % This software is licensed under a Non-Commercial Software License
-% (see https://github.com/thomasdeppisch/eMagLS/blob/master/LICENSE for full details).
+% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Hannes Helmholz, 2023
 
