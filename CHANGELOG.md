@@ -1,6 +1,7 @@
 # Changelog
 
 ### Unreleased
+- Update `ambisonic-encoding` submodule to latest version
 - Update eMagLS functions to remove comment that diffuseness constraint used to cause slight magnitude deviations at low frequencies (this was fixed by setting the DC bin)
 - Update function header documentation and year
 - Add `resources/Acappella_Eigenmike_Raw_32ch_short.wav` again to not download a large ZIP file when executing the example for the first time
