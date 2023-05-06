@@ -1,6 +1,7 @@
 # Changelog
 
-### Unreleased
+### 2023-05-06 (_v2023.05.06_)
+- Update `README.md` with release tags
 - Update or add function header link to license after renaming `master` into `main` branch
 - Update `ambisonic-encoding` submodule to latest version
 - Update eMagLS functions to remove comment that diffuseness constraint used to cause slight magnitude deviations at low frequencies (this was fixed by setting the DC bin)
@@ -120,6 +121,10 @@
 - Update `testEMagLs.m` to accept tolerance when verifying rendering filters against the provided reference
 - Update functions to use `ifft()` without the forced symmetric parameter (fix to yield "real" or "complex" filters depending on the basis type)
 - Update `getEMagLsFilters.m` and `getEMagLs2Filters.m` to slightly improve computation time
+### 2022-05-20 (_v2022.05.20_)
+- Update functions to support "complex" SH conventions
+- Update `testEMagLs.m` to be verbose about audio playback of rendering results
+- Update `README.md` with information on initializing git submodules
 ### 2022-05-03
 - Update `testEMagLs.m` to add used SH basis type in exported file names (update file names of respective reference results)
 - Update `testEMagLs.m` to export audio rendering results as an option
@@ -135,8 +140,5 @@
 - Remove default SMA recording dataset (update `testEMagLs.m` to download data on demand)
 - Remove default HRIR dataset (update `testEMagLs.m`t to download data on demand)
 - Fix all function endings and formatting
-### 2022-03-16
-- Update `testEMagLs.m` to be verbose about audio playback of rendering results
-- Update `README.md` with information on initializing git submodules
-### 2021-10-10
+### 2021-10-10 (_v2021.10.10_)
 - Initial code release
