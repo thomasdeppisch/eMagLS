@@ -88,7 +88,7 @@ if any(hrirGridZenRad ~= pi/2)
 end
 
 fprintf('with @%s("%s") ... ', func2str(chFunction), shDefinition);
-Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition)');
+Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition));
 
 % precompute `pwGrid_CH = Y_CH_Mic_pinv * (smairMat(:,:,k) * Y_hor_conj)` term
 smairMat_CH = pagemtimes(smairMat, Y_hor_conj);

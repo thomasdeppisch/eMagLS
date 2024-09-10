@@ -8,7 +8,7 @@ function Y = getCH(order, gridAziRad, shDefinition)
 
 if strcmpi(shDefinition, 'complex')
     m = ch_stackOrder(order);
-    Y = exp(-1i .* m .* gridAziRad);
+    Y = exp(1i .* m .* gridAziRad);
 elseif strcmpi(shDefinition, 'real')
     Y = ones(2*order+1, length(gridAziRad));
     for m = 1 : order
