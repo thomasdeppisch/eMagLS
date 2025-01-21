@@ -1,4 +1,4 @@
-function Y = getCH(order, gridAziRad, shDefinition)
+function Y = getCH(order, gridAziRad, chDefinition)
 % yield circular harmonics basis functions
 %
 % This software is licensed under a Non-Commercial Software License
@@ -6,17 +6,17 @@ function Y = getCH(order, gridAziRad, shDefinition)
 %
 % Hannes Helmholz, 2023
 
-if strcmpi(shDefinition, 'complex')
+if strcmpi(chDefinition, 'complex')
     m = ch_stackOrder(order);
     Y = exp(1i .* m .* gridAziRad);
-elseif strcmpi(shDefinition, 'real')
+elseif strcmpi(chDefinition, 'real')
     Y = ones(2*order+1, length(gridAziRad));
     for m = 1 : order
         Y(2*m, :) = sqrt(2) .* sin(m .* gridAziRad);
         Y(2*m+1, :) = sqrt(2) .* cos(m .* gridAziRad);
     end
 else
-    error('Unknown shDefinition "%s".', shDefinition);
+    error('Unknown shDefinition "%s".', chDefinition);
 end
 
 end

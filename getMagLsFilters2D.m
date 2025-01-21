@@ -1,10 +1,9 @@
-function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-                                          order, fs, len, shDefinition, shFunction)
-% [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     order, fs, len, applyDiffusenessConst, shDefinition, shFunction)
+function [wMlsL, wMlsR] = getMagLsFilters2D(hLHor, hRHor, horHrirGridAziRad, order, fs, len, chDefinition)
+% [wMlsL, wMlsR] = getMagLsFilters2D(hLHor, hRHor, horHrirGridAziRad, order, fs, len, chDefinition)
 %
 % This function calculates MagLS binaural decoding filters for head related 
-% impulse response data sets.
+% impulse response data sets using circular harmonics (CHs), providing
+% rendering for horizontal sound fields.
 % For more information, please refer to
 %   Schörkhuber, Zaunschirm, and Hoeldrich,
 %   “Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,”
@@ -14,27 +13,24 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % wMlsR                  .. time-domain decoding filter for right ear
 % hL                     .. HRIR set for left ear (numSamples x numDirections)
 % hR                     .. HRIR set for right ear (numSamples x numDirections)
-% hrirGridAziRad         .. grid azimuth angles in radians of HRIR set (numDirections x 1)
-% hrirGridZenRad         .. grid zenith angles in radians of HRIR set (numDirections x 1)
+% horHrirGridAziRad      .. horizontal grid azimuth angles in radians of HRIR set (numDirections x 1)
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of magLS filters
-% shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
-% shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
+% chDefinition           .. CH basis type according to utilized chFunction, default: 'real'
 %
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
-% Thomas Deppisch, 2023
+% Thomas Deppisch, 2025
 
-if nargin < 9; shFunction = @getSH; end
-if nargin < 8 || isempty(shDefinition); shDefinition = 'real'; end
+if nargin < 7 || isempty(chDefinition); chDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
-assert(len >= size(hL, 1), 'HRIR len too short');
+assert(len >= size(hLHor, 1), 'HRIR len too short');
 
 nfft = min(NFFT_MAX_LEN, 2 * len); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).'; % assuming an even fft length
@@ -44,15 +40,14 @@ k_cut = ceil(f_cut / f(2));
 fprintf('with transition at %d Hz ... ', ceil(f_cut));
 
 numHarmonics = (order+1)^2;
-numDirections = size(hL, 2);
-fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
-Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
+numDirections = size(hLHor, 2);
+Y_conj = getCH(order, horHrirGridAziRad, chDefinition)';
 Y_pinv = pinv(Y_conj);
 
 % estimate group delay, zero pad and remove group delay with subsample
 % precision (this is an alternative to applying global phase delay later)
-grpD = median(cat(3, grpdelay(sum(hL, 2), 1, f, fs), grpdelay(sum(hR, 2), 1, f, fs)));
-h = cat(3, hL, hR);
+grpD = median(cat(3, grpdelay(sum(hLHor, 2), 1, f, fs), grpdelay(sum(hRHor, 2), 1, f, fs)));
+h = cat(3, hLHor, hRHor);
 clear hL hR;
 h(end+1:nfft, :, :) = 0;
 h = applySubsampleDelay(h, -grpD);
@@ -77,8 +72,8 @@ end
 if isreal(Y_conj)
    W_MLS = [W_MLS(1:numPosFreqs, :, :); flipud(conj(W_MLS(2:numPosFreqs-1, :, :)))];
 else
-   W_MLS(:,:,1) = getShFreqDomainConjugate(W_MLS(1:numPosFreqs,:,1));
-   W_MLS(:,:,2) = getShFreqDomainConjugate(W_MLS(1:numPosFreqs,:,2));
+   W_MLS(:,:,1) = getChFreqDomainConjugate(W_MLS(1:numPosFreqs,:,1));
+   W_MLS(:,:,2) = getChFreqDomainConjugate(W_MLS(1:numPosFreqs,:,2));
 end
 wMls = ifft(W_MLS);
 
