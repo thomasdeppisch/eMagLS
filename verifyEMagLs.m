@@ -13,6 +13,7 @@
 clear; clc; close all;
 
 addpath(genpath('dependencies/'));
+addpath(genpath('lib/'));
 
 %% configuration
 filterLen = 512; % in samples
