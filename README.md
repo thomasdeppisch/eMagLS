@@ -3,7 +3,7 @@ This repository contains MATLAB functions to obtain binaural rendering filters f
 
 The following files demonstrate the generation of rendering filters and binaural rendering:
   - `testEMagLs.m`: showcases rendering from spherical and equatorial microphone arrays (SMAs and EMAs)
-  - `testEMagLsFromAtfs.m`: showcases rendering of arbitrary arrays based on array transfer functions (ATFs)
+  - `testEMagLsFromAtfs.m`: showcases rendering for arbitrary arrays based on array transfer functions (ATFs)
 
 For more information and if you want to reference the code please refer to the [publication for SMAs](https://research.chalmers.se/publication/528436/file/528436_Fulltext.pdf) or the [publication for EMAs](https://research.chalmers.se/publication/535525/file/535525_Fulltext.pdf) respectively.
    
@@ -17,7 +17,13 @@ For more information and if you want to reference the code please refer to the [
    “End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,”
    in Fortschritte der Akustik -- DAGA 2023, 2023, pp. 1679–1682.
    ```
-   
+
+ATF-based rendering of signals from smartglasses was e.g. used in 
+   ```
+   Thomas Deppisch, Nils Meyer-Kahlen, Sebastia Amengual Gari, "Blind Identification of Binaural Room Impulse Responses from Smart Glasses", 
+   IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 32, pp. 4052-4065, 2024, 
+   doi: 10.1109/TASLP.2024.3454964.
+   ```
 
 Make sure to clone the repository including submodules `git clone --recurse-submodules` or add the [Spherical Harmonic Transform Library](https://github.com/polarch/Spherical-Harmonic-Transform) and the [Ambisonic Encoding Toolbox](https://github.com/AppliedAcousticsChalmers/ambisonic-encoding) manually to the `dependencies/` folder.
 
