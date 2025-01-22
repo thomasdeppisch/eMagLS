@@ -27,7 +27,6 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 if nargin < 7; shFunction = @getSH; end
 if nargin < 6 || isempty(shDefinition); shDefinition = 'real'; end
 
-fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 

@@ -1,29 +1,29 @@
-function Y = getCH(order, gridAziRad, chDefinition)
-% yield circular harmonics basis functions
+function Y = getCH(N, aziRad, basisType)
+% This function returns complex or real-valued circular harmonics, up to
+% maximum order N, evaluated at azimuthal directions in radians aziRad.
+% Y .. CHs of size numDirs x 2N+1, CHs C_m are ordered as in ACN:
+% [C_0, C_-1, C_1, C_-2, C_2, ..., C_-N, C_N].
 %
-% This software is licensed under a Non-Commercial Software License
-% (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
-%
-% Hannes Helmholz, 2023
-
-if strcmpi(chDefinition, 'complex')
-    m = ch_stackOrder(order);
-    Y = exp(1i .* m .* gridAziRad);
-elseif strcmpi(chDefinition, 'real')
-    Y = ones(2*order+1, length(gridAziRad));
-    for m = 1 : order
-        Y(2*m, :) = sqrt(2) .* sin(m .* gridAziRad);
-        Y(2*m+1, :) = sqrt(2) .* cos(m .* gridAziRad);
-    end
-else
-    error('Unknown shDefinition "%s".', chDefinition);
+arguments
+    N (1,1)
+    aziRad (:,1)
+    basisType {mustBeMember(basisType,{'real','complex'})}
 end
 
-end
+Ndirs = size(aziRad, 1);
+Nharm = 2*N+1;
+Y = zeros(Ndirs, Nharm);
 
-function ms = ch_stackOrder(order)
-    ms = 0;
-    for m = 1 : order
-        ms = [ms, -m, m]; %#ok<*AGROW> 
+Y(:,1) = 1;
+for nn = 1:N
+    chIdxNegM = 2*nn;
+    chIdxPosM = 2*nn+1; 
+    
+    if isequal(basisType, 'real')
+        Y(:,chIdxNegM) = sqrt(2) * sin(nn*aziRad);
+        Y(:,chIdxPosM) = sqrt(2) * cos(nn*aziRad);
+    elseif isequal(basisType, 'complex')
+       Y(:,chIdxNegM) = exp(-1i*nn*aziRad);
+       Y(:,chIdxPosM) = exp(1i*nn*aziRad);
     end
 end

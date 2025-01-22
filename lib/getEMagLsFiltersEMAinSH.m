@@ -1,9 +1,7 @@
 function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-    micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
-    shDefinition, shFunction)
+    micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction, chFunction)
 % [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, order, fs, len, applyDiffusenessConst, ...
-%     shDefinition, shFunction)
+%     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction)
 %
 % This function calculates eMagLS binaural decoding filters in spherical harmonics
 % for equatorial microphone arrays, allowing for 3-DOF head rotations.
@@ -23,7 +21,6 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 % order                  .. SH output order
 % fs                     .. sampling frequency in Hz
 % len                    .. desired length of eMagLS filters
-% applyDiffusenessConst  .. {true, false}, apply diffuseness constraint, default: false
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
 %
@@ -32,16 +29,15 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 %
 % Hannes Helmholz, 2023
 
-if nargin < 12; shFunction = @getSH; end
-if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
-if nargin < 10 || isempty(applyDiffusenessConst); applyDiffusenessConst = false; end
+if nargin < 12; chFunction = @getCH; end
+if nargin < 11; shFunction = @getSH; end
+if nargin < 10 || isempty(shDefinition); shDefinition = 'real'; end
 
 NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
 F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
-DIFF_CONST_IMAG_THLD    = 1e-9;
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'len too short');
@@ -50,16 +46,13 @@ nfft = min(NFFT_MAX_LEN, 2 * len); % apply frequency-domain oversampling
 f = linspace(0, fs/2, nfft/2+1).';
 f_cut = max(F_CUT_MIN_FREQ, 500 * order); % from N > k
 k_cut = ceil(f_cut / f(2));
-fprintf('with transition at %d Hz ... ', ceil(f_cut));
 
-fprintf('with @%s("%s") ... ', func2str(shFunction), shDefinition);
 % simulate plane wave impinging on EMA
 params.returnRawMicSigs = true; % raw mic signals, no SHs!
 params.order = order;
 params.fs = fs;
 params.irLen = nfft;
 params.oversamplingFactor = 1;
-params.simulateAliasing = true;
 params.radialFilter = 'none';
 params.smaRadius = micRadius;
 params.smaDesignAziZenRad = [micGridAziRad, ones(size(micGridAziRad)) * pi/2];
@@ -67,32 +60,27 @@ params.waveModel = SIMULATION_WAVE_MODEL;
 params.arrayType = SIMULATION_ARRAY_TYPE;
 params.shDefinition = shDefinition;
 params.shFunction = shFunction;
-emairMat = getSMAIRMatrix(params);
-simulationOrder = sqrt(size(emairMat, 2)) - 1;
+emaIrMat = getSMAIRMatrix(params);
+simulationOrder = sqrt(size(emaIrMat, 2)) - 1;
 
 % sample the microphone responses to PW directions on the EMA from all HRIR
 % directions, but mapped to elevation = 0
 Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, ones(size(hrirGridAziRad)) * pi/2], shDefinition)';
-emairDir = pagemtimes(emairMat, Y_hor_conj);
-clear emairMat;
+emaIrDir = pagemtimes(emaIrMat, Y_hor_conj);
+clear emaIrMat;
 
-% transform into time domain
 numPosFreqs = length(f);
-emairDir = permute(emairDir, [3, 1, 2]);
-emairDir = [emairDir(1:numPosFreqs, :, :); flipud(conj(emairDir(2:numPosFreqs-1, :, :)))];
-emairDir_t = ifft(emairDir);
-clear emairDir;
+emaIrDir = permute(emaIrDir, [3, 1, 2]);
 
 % decompose with EMA functions without radial filters
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
-emairDir_sh = zeros(nfft, numHarmonics, numDirections);
+emaIrDir_sh = zeros(numPosFreqs, numHarmonics, numDirections);
+YCh = chFunction(order, micGridAziRad, shDefinition);
+J = getChToShExpansionMatrix(order,shDefinition);
 for d = 1 : numDirections
-    % skip radial filtering here (providing 1 as the argument)!!
-    emairDir_sh(:, :, d) = get_sound_field_sh_coeffs_from_ema_t( ...
-        emairDir_t(:, :, d), 1, order, micGridAziRad.');
-end; clear d;
-clear emairDir_t;
+    emaIrDir_sh(:, :, d) = emaIrDir(:, :, d) * pinv(YCh.') * J.';
+end
 
 % rotate the EMA SH sound field to impose the HRIR elevation
 for d = 1 : numDirections
@@ -108,14 +96,13 @@ for d = 1 : numDirections
         euler_matrix  = euler2rotationMatrix(-hrirGridAziRad(d), ...
             hrirGridZenRad(d) - pi/2, hrirGridAziRad(d), 'zyz');
         sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-        emairDir_sh(:, :, d) = emairDir_sh(:, :, d) * sh_rot_matrix;
+        emaIrDir_sh(:, :, d) = emaIrDir_sh(:, :, d) * sh_rot_matrix;
     end
 end; clear d euler_matrix sh_rot_matrix;
 
-% transform into freqeuncy domain
-pwGridAll = fft(emairDir_sh);
-pwGridAll = permute(pwGridAll, [2, 3, 1]);
-clear emairDir_sh;
+% to frequency domain
+pwGridAll = permute(emaIrDir_sh, [2, 3, 1]);
+clear emaIrDir_sh;
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
@@ -126,9 +113,9 @@ grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
 hL = applySubsampleDelay(hL, -grpDL);
 hR = applySubsampleDelay(hR, -grpDR);
 
-% transform into frequency domain
-HL = fft(hL);
-HR = fft(hR);
+% to frequency domain
+HL = fft(hL,nfft);
+HR = fft(hR,nfft);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
 W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
@@ -145,7 +132,7 @@ for k = 2:numPosFreqs
     else % magnitude least-squares above cut
         phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
         phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
+        if k == numPosFreqs % Nyquist bin
             W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
             W_MLS_r(k,:) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
         else
@@ -153,60 +140,6 @@ for k = 2:numPosFreqs
             W_MLS_r(k,:) = abs(HR(k,:)) .* exp(1i * phi_r) * Y_reg_inv;
         end
     end
-
-    if ~isreal(Y_hor_conj) && k > 1 && (k < numPosFreqs || mod(nfft, 2)) % is odd
-        warning(strcat('The rendering filters for "complex" SH basis types has not been validated yet.'));
-
-        % negative frequencies below cut in case of complex-valued SHs
-        k_neg = nfft-k+2;
-        pwGrid = pwGridAll(:,:,k_neg);
-        [U, s, V] = svd(pwGrid.', 'econ', 'vector');
-        s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-        Y_reg_inv = conj(U) * (s .* V.');
-
-        if k < k_cut % least-squares below cut
-            W_MLS_l(k_neg,:) = HL(k_neg,:) * Y_reg_inv;
-            W_MLS_r(k_neg,:) = HR(k_neg,:) * Y_reg_inv;
-        else % magnitude least-squares above cut
-            W_MLS_l(k_neg,:) = abs(HL(k_neg,:)) .* exp(1i * -phi_l) * Y_reg_inv;
-            W_MLS_r(k_neg,:) = abs(HR(k_neg,:)) .* exp(1i * -phi_r) * Y_reg_inv;
-        end
-    end
-end
-
-if applyDiffusenessConst
-    assert(strcmpi(shDefinition, 'real'), ...
-        'Diffuseness constraint is not implemented for "%s" SHs yet.', shDefinition);
-    % diffuseness constraint after Zaunschirm, Schoerkhuber, Hoeldrich,
-    % "Binaural rendering of Ambisonic signals by head-related impulse
-    % response time alignment and a diffuseness constraint"
-
-    HCorr = zeros(numPosFreqs, numHarmonics, 2, 'like', HL);
-    for k = 2:numPosFreqs
-        % target covariance via original HRTF set
-        H = [HL(k,:); HR(k,:)];
-        R = 1/numDirections * (H * H');
-        R_small = abs(imag(R)) < DIFF_CONST_IMAG_THLD;
-        R(R_small) = real(R(R_small)); % neglect small imaginary parts
-        X = chol(R); % chol factor of covariance of HRTF set
-
-        % covariance of magLS HRTF set after rendering
-        HHat = [W_MLS_l(k,:); W_MLS_r(k,:)];
-        RHat = 1/(4*pi) * (HHat * pwGridAll(:,:,k) * pwGridAll(:,:,k)' * HHat');
-        RHat_small = abs(imag(RHat)) < DIFF_CONST_IMAG_THLD; % neglect small imaginary parts
-        RHat(RHat_small) = real(RHat(RHat_small));
-        XHat = chol(RHat); % chol factor of magLS HRTF set in SHD
-
-        [U, s, V] = svd(XHat' * X, 'econ', 'vector');
-        if any(imag(s) ~= 0) || any(s < 0)
-            warning('negative or complex singular values, pull out negative/complex and factor into left or right singular vector!')
-        end
-        M = V * U' * X / XHat;
-        HCorr(k,:,:) = HHat' * M;
-    end
-
-    W_MLS_l = conj(HCorr(:,:,1));
-    W_MLS_r = conj(HCorr(:,:,2));
 end
 
 % mamnually set the DC bin (use `real()` instead of `abs()`, which causes 
@@ -214,10 +147,13 @@ end
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 
-% transform into time domain
+% to time domain
 if isreal(Y_hor_conj)
     W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
     W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
+else
+    W_MLS_l = getShFreqDomainConjugate(W_MLS_l(1:numPosFreqs, :));
+    W_MLS_r = getShFreqDomainConjugate(W_MLS_r(1:numPosFreqs, :));
 end
 wMlsL = ifft(W_MLS_l);
 wMlsR = ifft(W_MLS_r);

@@ -4,9 +4,6 @@
 [submodule "dependencies/Array-Response-Simulator"]
 	path = dependencies/Array-Response-Simulator
 	url = https://github.com/polarch/Array-Response-Simulator.git
-[submodule "dependencies/ambisonic-encoding"]
-	path = dependencies/ambisonic-encoding
-	url = https://github.com/AppliedAcousticsChalmers/ambisonic-encoding.git
 [submodule "dependencies/sh-symmetries"]
 	path = dependencies/sh-symmetries
 	url = git@github.com:thomasdeppisch/sh-symmetries.git
