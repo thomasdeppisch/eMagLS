@@ -6,9 +6,9 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % This function calculates MagLS binaural decoding filters for head related 
 % impulse response data sets.
 % For more information, please refer to
-%   Schörkhuber, Zaunschirm, and Hoeldrich,
-%   “Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,”
-%   in Fortschritte der Akustik -- DAGA 2018, 2018, pp. 339–342.
+%   C. Schörkhuber, M. Zaunschirm, and R. Höldrich,
+%   "Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,"
+%   in Fortschritte der Akustik -- DAGA 2018, Munich, Germany: Deutsche Gesellschaft für Akustik, 2018, pp. 339–342.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear

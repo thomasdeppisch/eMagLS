@@ -5,9 +5,9 @@ function [wMlsL, wMlsR] = getMagLsFilters2D(hLHor, hRHor, horHrirGridAziRad, ord
 % impulse response data sets using circular harmonics (CHs), providing
 % rendering for horizontal sound fields.
 % For more information, please refer to
-%   Schörkhuber, Zaunschirm, and Hoeldrich,
-%   “Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,”
-%   in Fortschritte der Akustik -- DAGA 2018, 2018, pp. 339–342.
+%   C. Schörkhuber, M. Zaunschirm, and R. Höldrich,
+%   "Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,"
+%   in Fortschritte der Akustik -- DAGA 2018, Munich, Germany: Deutsche Gesellschaft für Akustik, 2018, pp. 339–342.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear

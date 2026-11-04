@@ -7,8 +7,8 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 % for equatorial microphone arrays, allowing for 1-DOF head rotations.
 % For more information, please refer to
 %   H. Helmholz, T. Deppisch, and J. Ahrens,
-%   “End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,”
-%   in Fortschritte der Akustik -- DAGA 2023, 2023, pp. 1679–1682.
+%   "End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,"
+%   in Fortschritte der Akustik -- DAGA 2023, Hamburg, Germany: Deutsche Gesellschaft für Akustik, Mar. 2023, pp. 1679–1682.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear

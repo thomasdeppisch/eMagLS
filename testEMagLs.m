@@ -4,8 +4,9 @@
 %
 % For more information, please refer to
 %   T. Deppisch, H. Helmholz, and J. Ahrens,
-%   “End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,”
-%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), 2021, pp. 1–7. doi: 10.1109/I3DA48870.2021.9610864.
+%   "End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,"
+%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), Bologna, Italy: IEEE, 2021, pp. 1–7.
+%   doi: 10.1109/I3DA48870.2021.9610864.
 %
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).

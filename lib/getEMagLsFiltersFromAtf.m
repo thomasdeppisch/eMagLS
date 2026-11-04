@@ -5,9 +5,9 @@ function [wMlsL, wMlsR] = getEMagLsFiltersFromAtf(hL, hR, hrirGridAziZenRad, atf
 % microphone arrays based on array transfer functions (ATFs).
 %
 % For more information, please refer to
-%   Thomas Deppisch, Nils Meyer-Kahlen, Sebastia Amengual Gari, 
-%   "Blind Identification of Binaural Room Impulse Responses from Smart Glasses", 
-%   IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 32, pp. 4052-4065, 2024, 
+%   T. Deppisch, N. Meyer-Kahlen, and S. V. Amengual Garí,
+%   "Blind Identification of Binaural Room Impulse Responses From Smart Glasses,"
+%   IEEE/ACM Transactions on Audio, Speech, and Language Processing (TASLP), vol. 32, pp. 4052–4065, 2024,
 %   doi: 10.1109/TASLP.2024.3454964.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
