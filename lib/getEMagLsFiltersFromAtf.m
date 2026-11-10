@@ -111,7 +111,7 @@ for k = 2:numPosFreqs
     else % magnitude least-squares above cut
         phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
         phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
+        if k == numPosFreqs % Nyquist bin
             W_MLS_l(k,:) = real(abs(HLMatched(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
             W_MLS_r(k,:) = real(abs(HRMatched(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
         else
