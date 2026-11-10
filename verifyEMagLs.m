@@ -106,13 +106,13 @@ fprintf('done.\n');
 %     shOrder, filterLen);
 % [wEMlsL, wEMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen, ...
-%     applyDiffusenessConst, shDefinition, shFunction);
+%     shDefinition, shFunction);
 % fprintf('done.\n');
 
 % % For EMA
 % [wEMlsL, wEMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     micRadius, micGridAziRad, shOrder, fs, filterLen, ...
-%     applyDiffusenessConst, shDefinition, shFunction, @getCH);
+%     shDefinition, shFunction, @getCH);
 
 fprintf('Computing eMagLS2 rendering filters ... with %d samples ... ', filterLen);
 [wEMls2L, wEMls2R] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
@@ -135,20 +135,10 @@ if strcmp(filesep, '\')
 end
 clear hrirPath;
 
-if ~exist('applyDiffusenessConst', 'var')
-    % according to the default parameter in the rendering filter functions
-    applyDiffusenessConst = false;
-end
-if applyDiffusenessConst
-    refDiffusenessConst = 'wDC';
-else
-    refDiffusenessConst = 'woDC';
-end
 refLS = 'LS';
-refMagLS = ['MagLS_', refDiffusenessConst];
-refeMagLS = ['eMagLS_', refDiffusenessConst];
-refeMagLS2 = ['eMagLS2_', refDiffusenessConst];
-clear refDiffusenessConst;
+refMagLS = 'MagLS';
+refeMagLS = 'eMagLS';
+refeMagLS2 = 'eMagLS2';
 
 if DO_VERIFY_REFERENCE
     if DO_OVERRIDE_REFERENCE
@@ -377,7 +367,7 @@ function assertAllClose(x1, x2, norm_tol, spec_tol_dB)
     if norm_diff == 0
         fprintf('no sample difference ... ');
     elseif norm_diff < norm_tol
-        fprintf('%.4g max. norm. abs. sample difference ... ', norm_diff);
+        fprintf('%.2g maximum normalized absolute sample difference ... ', norm_diff);
     else
         % compute spectral difference
         spec_diff_dB = mag2db(abs(fft(x1) ./ fft(x2)));
@@ -385,12 +375,12 @@ function assertAllClose(x1, x2, norm_tol, spec_tol_dB)
         spec_diff_dB = max(spec_diff_dB(2:end, :), [], 'all');
 
         if spec_diff_dB < 1e-3
-            fprintf('sample but no spec. difference ... ');
+            fprintf('sample but no spectral difference ... ');
         elseif spec_diff_dB < spec_tol_dB
-            fprintf('sample and %.1f dB max. spec. difference ... ', spec_diff_dB);
+            fprintf('sample and %.1f dB maximum spectral difference ... ', spec_diff_dB);
         else
             error(['Maximum spectral mismatch of %.1f dB (greater than %.1f dB tolerance) ', ...
-                'and normalized absolute sample mismatch of %.4g (greater than %.4g tolerance).'], ...
+                'and normalized absolute sample mismatch of %.2g (greater than %.2g tolerance).'], ...
                 spec_diff_dB, spec_tol_dB, norm_diff, norm_tol);
         end
     end
