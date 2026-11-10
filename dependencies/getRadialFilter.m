@@ -62,7 +62,7 @@ function radFilts = getRadialFilter(params)
             radFilts = 1 ./ bnAll(:,1:params.order+1);
 
         otherwise
-            error('Unkown radialFilter parameter "%s".', params.radialFilter);
+            error('Unknown radialFilter parameter "%s".', params.radialFilter);
 
     end
 

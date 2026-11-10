@@ -4,9 +4,10 @@ function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 % This function calculates the inverted spherical head filter to be 
 % optionally applied in addition to the MagLS rendering filters.
 % For more information, please refer to
-%   Ben-Hur, Brinkmann, Sheaffer, Weinzierl, Rafaely,
-%   "Spectral Equalization in Binaural Signals Represented by Order-Truncated Spherical Harmonics",
-%   J. Acoust. Soc. Am., vol. 141, no. 6, pp. 4087–4096, 2017, doi: 10.1121/1.4983652.
+%   Z. Ben-Hur, F. Brinkmann, J. Sheaffer, S. Weinzierl, and B. Rafaely,
+%   "Spectral Equalization in Binaural Signals Represented by Order-Truncated Spherical Harmonics,"
+%   Journal of the Acoustical Society of America, vol. 141, no. 6, pp. 4087–4096, 2017,
+%   doi: 10.1121/1.4983652.
 % 
 % wShf                   .. time-domain filter (linear-phase-like with fade-out window)
 % W_Shf                  .. frequency-domain filter (zero-phase-like)
@@ -20,7 +21,7 @@ function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 %
 % Hannes Helmholz, 2023
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `sphModalCoeffs()`
 SIMULATION_MIC_DIR      = 0; % see `sphModalCoeffs()`
 SIMULATION_C            = 343; % speed of sound in m/s
@@ -48,7 +49,7 @@ W_Shf = bn_Hi_df ./ bn_Lo_df;
 % invert spectrum
 W_Shf = 1 ./ W_Shf;
 
-% transform into time domain
+% to time domain
 numPosFreqs = nfft/2+1;
 W_Shf = [W_Shf(1:numPosFreqs, :); flipud(conj(W_Shf(2:numPosFreqs-1, :)))];
 wShf = ifft(W_Shf);

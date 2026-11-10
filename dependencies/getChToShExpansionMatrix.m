@@ -17,7 +17,4 @@ for n = 0 : order
     end
 end
 
-
 end
-
-

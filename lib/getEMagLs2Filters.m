@@ -6,8 +6,9 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 % This function calculates eMagLS2 binaural decoding filters for spherical microphone arrays.
 % For more information, please refer to
 %   T. Deppisch, H. Helmholz, and J. Ahrens,
-%   “End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,”
-%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), 2021, pp. 1–7. doi: 10.1109/I3DA48870.2021.9610864.
+%   "End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,"
+%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), Bologna, Italy: IEEE, 2021, pp. 1–7.
+%   doi: 10.1109/I3DA48870.2021.9610864.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -29,11 +30,11 @@ function [wMlsL, wMlsR] = getEMagLs2Filters(hL, hR, hrirGridAziRad, hrirGridZenR
 %
 % Thomas Deppisch, 2023
 
-if nargin < 12; shFunction = @getSH; end
+if nargin < 12 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -64,11 +65,11 @@ smairMat = getSMAIRMatrix(params);
 simulationOrder = sqrt(size(smairMat, 2)) - 1;
 
 numMics = length(micGridAziRad);
-numDirections = size(hL, 2);
 Y_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
@@ -76,17 +77,17 @@ grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
 hL = applySubsampleDelay(hL, -grpDL);
 hR = applySubsampleDelay(hR, -grpDR);
 
-% transform into frequency domain
+% to frequency domain
 HL = fft(hL);
 HR = fft(hR);
 
 W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
-W_MLS_r = zeros(numPosFreqs, numMics, 'like', HL);
+W_MLS_r = zeros(numPosFreqs, numMics, 'like', HR);
 for k = 2:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.');
+    Y_reg_inv = V * (s .* U');
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
@@ -104,7 +105,7 @@ for k = 2:numPosFreqs
     end
 end
 
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
 % strong a magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));

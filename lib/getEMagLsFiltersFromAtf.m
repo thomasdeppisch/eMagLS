@@ -5,9 +5,9 @@ function [wMlsL, wMlsR] = getEMagLsFiltersFromAtf(hL, hR, hrirGridAziZenRad, atf
 % microphone arrays based on array transfer functions (ATFs).
 %
 % For more information, please refer to
-%   Thomas Deppisch, Nils Meyer-Kahlen, Sebastia Amengual Gari, 
-%   "Blind Identification of Binaural Room Impulse Responses from Smart Glasses", 
-%   IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 32, pp. 4052-4065, 2024, 
+%   T. Deppisch, N. Meyer-Kahlen, and S. V. Amengual Garí,
+%   "Blind Identification of Binaural Room Impulse Responses From Smart Glasses,"
+%   IEEE/ACM Transactions on Audio, Speech, and Language Processing (TASLP), vol. 32, pp. 4052–4065, 2024,
 %   doi: 10.1109/TASLP.2024.3454964.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
@@ -40,15 +40,17 @@ kTrans = ceil(fTrans / f(2));
 numMics = size(atfIrs,2);
 
 % zero pad and remove group delay
+% (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
 grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
-
+% TODO: Implement forward and backward shift equivalent to other methods
 hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(grpDL));
 hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(grpDR));
 
-% transform into frequency domain
+% to frequency domain
 HL = fft(hL, nfft);
 HR = fft(hR, nfft);
 atfs = fft(atfIrs, nfft);
@@ -62,7 +64,7 @@ atfs = fft(atfIrs, nfft);
 [numDirections, idxOfSmallerGrid] = min([size(hL, 2), size(atfIrs,3)]);
 if idxOfSmallerGrid == 1
     % HRTF grid is smaller
-    dirGridAziZenRad = hrirGridAziZenRad;
+    % dirGridAziZenRad = hrirGridAziZenRad;
     dirGridCart = hrirGridCart;
     gridToMatchCart = atfGridCart;
     HLMatched = HL;
@@ -70,7 +72,7 @@ if idxOfSmallerGrid == 1
     atfsMatched = zeros(numPosFreqs, numMics, numDirections);
 else
     % ATF grid is smaller
-    dirGridAziZenRad = atfGridAziZenRad;
+    % dirGridAziZenRad = atfGridAziZenRad;
     dirGridCart = atfGridCart;
     gridToMatchCart = hrirGridCart;
     HLMatched = zeros(numPosFreqs, numDirections);
@@ -96,12 +98,12 @@ end
 disp(['Matching HRTF and ATF grids, average grid deviation: ' num2str(mean(gridPointAngDistDeg)) ' deg'])
 
 W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
-W_MLS_r = zeros(numPosFreqs, numMics, 'like', HL);
+W_MLS_r = zeros(numPosFreqs, numMics, 'like', HR);
 for k = 2:numPosFreqs
-    pwGrid = squeeze(atfsMatched(k, :, :)); %  numMics x numDirections
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    pwGrid = squeeze(atfsMatched(k, :, :)); % numMics x numDirections
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.'); 
+    Y_reg_inv = V * (s .* U');
 
     if k < kTrans % least-squares below cut
         W_MLS_l(k,:) = HLMatched(k,:) * Y_reg_inv;
@@ -109,7 +111,7 @@ for k = 2:numPosFreqs
     else % magnitude least-squares above cut
         phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
         phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        if k == numPosFreqs && ~mod(nfft, 2) % Nyquist bin, is even
+        if k == numPosFreqs % Nyquist bin
             W_MLS_l(k,:) = real(abs(HLMatched(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
             W_MLS_r(k,:) = real(abs(HRMatched(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
         else
@@ -119,13 +121,12 @@ for k = 2:numPosFreqs
     end
 end
 
-
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
 % strong a magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 
-% transform into time domain
+% to time domain
 W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
 W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
 wMlsL = ifft(W_MLS_l);
@@ -138,6 +139,7 @@ wMlsL = circshift(wMlsL, n_shift);
 wMlsR = circshift(wMlsR, n_shift);
 
 % shorten to target length
+% TODO: Implement truncation and windowing equivalent to other methods
 wMlsL = wMlsL(n_shift-filterLen/2+1:n_shift+filterLen/2, :);
 wMlsR = wMlsR(n_shift-filterLen/2+1:n_shift+filterLen/2, :);
 

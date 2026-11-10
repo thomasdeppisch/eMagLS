@@ -26,10 +26,10 @@ function wAdf = getMagLsArrayDiffuseFilter( ...
 %
 % Hannes Helmholz, 2023
 
-if nargin < 8; shFunction = @getSH; end
+if nargin < 8 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 7 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `sphModalCoeffs()`
 SIMULATION_MIC_DIR      = 0; % see `sphModalCoeffs()`
 SIMULATION_C            = 343; % speed of sound in m/s
@@ -68,7 +68,7 @@ W_Alias = bn_Hi_df ./ bn_Lo_df;
 [~, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len);
 W_Adf = W_Shf(1:size(W_Alias, 1), :) .* W_Alias;
 
-% transform into time domain
+% to time domain
 numPosFreqs = nfft/2+1;
 W_Adf = [W_Adf(1:numPosFreqs, :); flipud(conj(W_Adf(2:numPosFreqs-1, :)))];
 wAdf = ifft(W_Adf);

@@ -1,14 +1,14 @@
 function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction, chFunction)
 % [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction)
+%     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction, chFunction)
 %
 % This function calculates eMagLS binaural decoding filters in spherical harmonics
 % for equatorial microphone arrays, allowing for 3-DOF head rotations.
 % For more information, please refer to
 %   H. Helmholz, T. Deppisch, and J. Ahrens,
-%   “End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,”
-%   in Fortschritte der Akustik -- DAGA 2023, 2023, pp. 1679–1682.
+%   "End-to-End Magnitude Least Squares Binaural Rendering for Equatorial Microphone Arrays,"
+%   in Fortschritte der Akustik -- DAGA 2023, Hamburg, Germany: Deutsche Gesellschaft für Akustik, Mar. 2023, pp. 1679–1682.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -23,18 +23,19 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 % len                    .. desired length of eMagLS filters
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
+% chFunction             .. CH basis function, default: @getCH
 %
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Hannes Helmholz, 2023
 
-if nargin < 12; chFunction = @getCH; end
-if nargin < 11; shFunction = @getSH; end
+if nargin < 12 || isempty(chFunction); chFunction = @getCH; end
+if nargin < 11 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 10 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -67,7 +68,6 @@ simulationOrder = sqrt(size(emaIrMat, 2)) - 1;
 % directions, but mapped to elevation = 0
 Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, ones(size(hrirGridAziRad)) * pi/2], shDefinition)';
 emaIrDir = pagemtimes(emaIrMat, Y_hor_conj);
-clear emaIrMat;
 
 numPosFreqs = length(f);
 emaIrDir = permute(emaIrDir, [3, 1, 2]);
@@ -75,37 +75,40 @@ emaIrDir = permute(emaIrDir, [3, 1, 2]);
 % decompose with EMA functions without radial filters
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
-emaIrDir_sh = zeros(numPosFreqs, numHarmonics, numDirections);
-YCh = chFunction(order, micGridAziRad, shDefinition);
-J = getChToShExpansionMatrix(order,shDefinition);
-for d = 1 : numDirections
-    emaIrDir_sh(:, :, d) = emaIrDir(:, :, d) * pinv(YCh.') * J.';
-end
+% % Original implementation, but the one below executes faster
+% emaIrDir_SH = zeros(numPosFreqs, numHarmonics, numDirections);
+% Y_CH = chFunction(order, micGridAziRad, shDefinition);
+% J = getChToShExpansionMatrix(order,shDefinition);
+% for d = 1 : numDirections
+%     emaIrDir_SH(:, :, d) = emaIrDir(:, :, d) * pinv(Y_CH.') * J.';
+% end
+Y_CH_pinv = pinv(chFunction(order, micGridAziRad, shDefinition).');
+Y_SH_pinv = Y_CH_pinv * getChToShExpansionMatrix(order, shDefinition).';
+emaIrDir_SH = pagemtimes(emaIrDir, Y_SH_pinv);
 
-% rotate the EMA SH sound field to impose the HRIR elevation
+% rotate the EMA sound field in SHs to impose the HRIR elevation
+sh_rot_matrix = zeros(numHarmonics, numHarmonics, numDirections);
 for d = 1 : numDirections
     if hrirGridZenRad(d) ~= pi/2
         % NOTE: This uses the SHT convention of spherical harmonics.
         %       Therefore, the resulting rotation matrices may not be
         %       correct for other conventions!
 
-        % 1) rotate SH represention so that the plane wave impinges from the front
-        % 2) rotate SH represention to impose the inverted desired elevation of incidence
+        % 1) rotate SH representation so that the plane wave impinges from the front
+        % 2) rotate SH representation to impose the inverted desired elevation of incidence
         %    (and convert colatitude to elevation)
-        % 3) rotate SH represention back to the original azimuth
-        euler_matrix  = euler2rotationMatrix(-hrirGridAziRad(d), ...
+        % 3) rotate SH representation back to the original azimuth
+        euler_matrix = euler2rotationMatrix(-hrirGridAziRad(d), ...
             hrirGridZenRad(d) - pi/2, hrirGridAziRad(d), 'zyz');
-        sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-        emaIrDir_sh(:, :, d) = emaIrDir_sh(:, :, d) * sh_rot_matrix;
+        sh_rot_matrix(:, :, d) = getSHrotMtx(euler_matrix, order, shDefinition);
     end
-end; clear d euler_matrix sh_rot_matrix;
-
-% to frequency domain
-pwGridAll = permute(emaIrDir_sh, [2, 3, 1]);
-clear emaIrDir_sh;
+end
+emaIrDir_SH = pagemtimes(emaIrDir_SH, sh_rot_matrix);
+pwGridAll = permute(emaIrDir_SH, [2, 3, 1]);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
@@ -118,13 +121,13 @@ HL = fft(hL,nfft);
 HR = fft(hR,nfft);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
-W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
+W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid = pwGridAll(:,:,k);
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.');
+    Y_reg_inv = V * (s .* U');
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
@@ -142,8 +145,8 @@ for k = 2:numPosFreqs
     end
 end
 
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes 
-% strong a magnitude errors in the rendering results at low frequencies)
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
+% strong magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 

@@ -6,9 +6,9 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 % This function calculates MagLS binaural decoding filters for head related 
 % impulse response data sets.
 % For more information, please refer to
-%   Schörkhuber, Zaunschirm, and Hoeldrich,
-%   “Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,”
-%   in Fortschritte der Akustik -- DAGA 2018, 2018, pp. 339–342.
+%   C. Schörkhuber, M. Zaunschirm, and R. Höldrich,
+%   "Binaural Rendering of Ambisonic Signals via Magnitude Least Squares,"
+%   in Fortschritte der Akustik -- DAGA 2018, Munich, Germany: Deutsche Gesellschaft für Akustik, 2018, pp. 339–342.
 %
 % wMlsL                  .. time-domain decoding filter for left ear
 % wMlsR                  .. time-domain decoding filter for right ear
@@ -27,11 +27,11 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %
 % Thomas Deppisch, 2023
 
-if nargin < 9; shFunction = @getSH; end
+if nargin < 9 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 8 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'HRIR len too short');
@@ -42,15 +42,13 @@ numPosFreqs = length(f);
 f_cut = max(F_CUT_MIN_FREQ, 500 * order); % from N > k
 k_cut = ceil(f_cut / f(2));
 
-numHarmonics = (order+1)^2;
-numDirections = size(hL, 2);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 
 % estimate group delay, zero pad and remove group delay with subsample
 % precision (this is an alternative to applying global phase delay later)
 grpD = median(cat(3, grpdelay(sum(hL, 2), 1, f, fs), grpdelay(sum(hR, 2), 1, f, fs)));
-h = cat(3, hL, hR);
+h = cat(3, hL, hR); % combine ears for faster processing
 clear hL hR;
 h(end+1:nfft, :, :) = 0;
 h = applySubsampleDelay(h, -grpD);
@@ -64,7 +62,7 @@ W_MLS = fft(w_LS,nfft);
 for k = k_cut:numPosFreqs
     phi = angle(pagemtimes(W_MLS(k-1, :, :), Y_conj));
 
-    if k == numPosFreqs % Nyquist bin, is even
+    if k == numPosFreqs % Nyquist bin
         W_MLS(k, :, :) = pagemtimes(real(abs(H(k, :, :)) .* exp(1i * phi)), Y_pinv);
     else
         W_MLS(k, :, :) = pagemtimes(abs(H(k, :, :)) .* exp(1i * phi), Y_pinv);
@@ -92,6 +90,7 @@ wMls = wMls(n_shift-len/2+1:n_shift+len/2, :, :);
 fade_win = getFadeWindow(len);
 wMls = wMls .* fade_win;
 
+% separate ear filters
 wMlsL = wMls(:, :, 1);
 wMlsR = wMls(:, :, 2);
 

@@ -4,8 +4,9 @@
 %
 % For more information, please refer to
 %   T. Deppisch, H. Helmholz, and J. Ahrens,
-%   “End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,”
-%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), 2021, pp. 1–7. doi: 10.1109/I3DA48870.2021.9610864.
+%   "End-to-End Magnitude Least Squares Binaural Rendering of Spherical Microphone Array Signals,"
+%   in 2021 Immersive and 3D Audio: from Architecture to Automotive (I3DA), Bologna, Italy: IEEE, 2021, pp. 1–7.
+%   doi: 10.1109/I3DA48870.2021.9610864.
 %
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
@@ -38,22 +39,22 @@ emaGridAziRad = srirEmaStruct.micsAziZenRad(:,1);
 emaRadius = srirEmaStruct.smaRadius;
 
 %% load data
-fprintf('Downloading HRIR dataset ... \n');
+fprintf('Downloading HRIR dataset ... ');
 if isfile(hrirFile)
     fprintf('already exists ... skipped.\n');
 else
     downloadAndExtractFile(hrirFile, hrirUrl);
 end
 
-fprintf('Loading file "%s" ... \n', hrirFile);
+fprintf('Loading file "%s" ... ', hrirFile);
 % the data fields will be incorrect if a different HRIR data set is used
 load(hrirFile);
 if isa(HRIR_L2702, 'uint32') || isempty(HRIR_L2702)
     % MIRO class does not exist on the system and will be downloaded
-    fprintf('Downloading MIRO class ... \n');
+    fprintf('Downloading MIRO class ... ');
     downloadAndExtractFile('dependencies/miro.m', 'https://zenodo.org/record/3928297/files/miro.m');
     % Retry loading file
-    fprintf('Loading file "%s" ... \n', hrirFile);
+    fprintf('Loading file "%s" ... ', hrirFile);
     load(hrirFile);
 end
 hL = double(HRIR_L2702.irChOne);
@@ -62,6 +63,7 @@ hrirGridAziRad = double(HRIR_L2702.azimuth.');
 hrirGridZenRad = double(HRIR_L2702.elevation.'); % the elevation angles actually contain zenith data between 0..pi
 fs = double(HRIR_L2702.fs);
 clear HRIR_L2702;
+fprintf('done.\n');
 
 [sig, sigFs] = audioread(sigPath);
 assert(sigFs == fs, 'Mismatch in sampling frequencies.');
@@ -70,7 +72,7 @@ smaSig = fftfilt(srirSmaStruct.rir, sig);
 emaSig = fftfilt(srirEmaStruct.rir, sig);
 
 %% get filters for the LS, MagLS, eMagLS and eMagLS2 renderers
-fprintf('Computing rendering filters \n');
+fprintf('\nComputing rendering filters ... \n');
 % LS solution
 [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, order, shDefinition);
 
@@ -120,7 +122,7 @@ params.nfft = params.oversamplingFactor * params.irLen;
 shSigSmaRadFiltered = applyRadialFilter(shSigSma, params);
 
 %% render to binaural
-fprintf('Rendering \n');
+fprintf('Rendering ... \n');
 
 % the LS and MagLS renderers need the radial filtered signals as input
 binLs = binauralDecode(shSigSmaRadFiltered, fs, wLsL, wLsR, fs);
@@ -133,11 +135,11 @@ binEMls = binauralDecode(shSigSma, fs, wEMlsL, wEMlsR, fs);
 binEMls2 = binauralDecode(smaSig, fs, wEMls2L, wEMls2R, fs);
 
 % for EMA rendering, there two options: using SHs (allowing for 3DoF
-% headtracking) or using CHs (supporting 1DoF headtracking)
+% head tracking) or using CHs (supporting 1DoF head tracking)
 binEMlsEmaCh = binauralDecode(chSigEma, fs, wEMlsLEmaCh, wEMlsREmaCh, fs);
 binEMlsEmaSh = binauralDecode(shSigEma, fs, wEMlsLEmaSh, wEMlsREmaSh, fs);
 
-fprintf('Normalizing binaural renderings \n');
+fprintf('Normalizing binaural renderings ... \n');
 binLs = binLs ./ max(abs(binLs(:))) * 0.5;
 binMls = binMls ./ max(abs(binMls(:))) * 0.5;
 binEMls = binEMls ./ max(abs(binEMls(:))) * 0.5;
@@ -145,8 +147,10 @@ binEMls2 = binEMls2 ./ max(abs(binEMls2(:))) * 0.5;
 binEMlsEmaCh = binEMlsEmaCh ./ max(abs(binEMlsEmaCh(:))) * 0.5;
 binEMlsEmaSh = binEMlsEmaSh ./ max(abs(binEMlsEmaSh(:))) * 0.5;
 
-fprintf('Starting playback, source should appear at %s° azimuth and %s° elevation ... \n', ...
-    num2str(srirSmaStruct.dirSoundDoaAziEleRad(1)*180/pi), num2str(srirSmaStruct.dirSoundDoaAziEleRad(2)*180/pi));
+%%
+fprintf('\nRendered source should appear at %.1f° azimuth and %.1f° elevation.\n', ...
+    rad2deg(srirSmaStruct.dirSoundDoaAziEleRad));
+
 fprintf('Playing back LS binaural rendering ... \n');
 playblocking(audioplayer(binLs, fs));
 
