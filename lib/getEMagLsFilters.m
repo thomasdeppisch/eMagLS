@@ -33,8 +33,8 @@ function [wMlsL, wMlsR] = getEMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRa
 if nargin < 12; shFunction = @getSH; end
 if nargin < 11 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -65,7 +65,6 @@ smairMat = getSMAIRMatrix(params);
 simulationOrder = sqrt(size(smairMat, 2)) - 1;
 
 numHarmonics = (order+1)^2;
-numDirections = size(hL, 2);
 Y_Hi_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 
 % zero pad and remove group delay with subsample precision
@@ -77,12 +76,12 @@ grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
 hL = applySubsampleDelay(hL, -grpDL);
 hR = applySubsampleDelay(hR, -grpDR);
 
-% transform into frequency domain
+% to frequency domain
 HL = fft(hL);
 HR = fft(hR);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
-W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
+W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid = smairMat(:,:,k) * Y_Hi_conj;
@@ -96,7 +95,7 @@ for k = 2:numPosFreqs
     else % magnitude least-squares above cut
         phi_l = angle(W_MLS_l(k-1,:) * pwGrid);
         phi_r = angle(W_MLS_r(k-1,:) * pwGrid);
-        if k == numPosFreqs % Nyquist bin, is even
+        if k == numPosFreqs % Nyquist bin
             W_MLS_l(k,:) = real(abs(HL(k,:)) .* exp(1i * phi_l)) * Y_reg_inv;
             W_MLS_r(k,:) = real(abs(HR(k,:)) .* exp(1i * phi_r)) * Y_reg_inv;
         else
@@ -106,7 +105,7 @@ for k = 2:numPosFreqs
     end
 end
 
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
 % strong magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));

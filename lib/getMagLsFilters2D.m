@@ -26,8 +26,8 @@ function [wMlsL, wMlsR] = getMagLsFilters2D(hLHor, hRHor, horHrirGridAziRad, ord
 
 if nargin < 7 || isempty(chDefinition); chDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hLHor, 1), 'HRIR len too short');
@@ -38,8 +38,6 @@ numPosFreqs = length(f);
 f_cut = max(F_CUT_MIN_FREQ, 500 * order); % from N > k
 k_cut = ceil(f_cut / f(2));
 
-numHarmonics = (order+1)^2;
-numDirections = size(hLHor, 2);
 Y_conj = getCH(order, horHrirGridAziRad, chDefinition)';
 Y_pinv = pinv(Y_conj);
 
@@ -60,7 +58,7 @@ W_MLS = fft(w_LS,nfft);
 for k = k_cut:numPosFreqs
     phi = angle(pagemtimes(W_MLS(k-1, :, :), Y_conj));
 
-    if k == numPosFreqs % Nyquist bin, is even
+    if k == numPosFreqs % Nyquist bin
         W_MLS(k, :, :) = pagemtimes(real(abs(H(k, :, :)) .* exp(1i * phi)), Y_pinv);
     else
         W_MLS(k, :, :) = pagemtimes(abs(H(k, :, :)) .* exp(1i * phi), Y_pinv);

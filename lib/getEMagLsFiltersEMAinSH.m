@@ -1,7 +1,7 @@
 function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction, chFunction)
 % [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
-%     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction)
+%     micRadius, micGridAziRad, order, fs, len, shDefinition, shFunction, chFunction)
 %
 % This function calculates eMagLS binaural decoding filters in spherical harmonics
 % for equatorial microphone arrays, allowing for 3-DOF head rotations.
@@ -23,18 +23,19 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinSH(hL, hR, hrirGridAziRad, hrirGr
 % len                    .. desired length of eMagLS filters
 % shDefinition           .. SH basis type according to utilized shFunction, default: 'real'
 % shFunction             .. SH basis function (see testEMagLs.m for example), default: @getSH
+% chFunction             .. CH basis function, default: @getCH
 %
 % This software is licensed under a Non-Commercial Software License
 % (see https://github.com/thomasdeppisch/eMagLS/blob/main/LICENSE for full details).
 %
 % Hannes Helmholz, 2023
 
-if nargin < 12; chFunction = @getCH; end
-if nargin < 11; shFunction = @getSH; end
+if nargin < 12 || isempty(chFunction); chFunction = @getCH; end
+if nargin < 11 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 10 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -82,25 +83,23 @@ for d = 1 : numDirections
     emaIrDir_sh(:, :, d) = emaIrDir(:, :, d) * pinv(YCh.') * J.';
 end
 
-% rotate the EMA SH sound field to impose the HRIR elevation
+% rotate the EMA sound field in SHs to impose the HRIR elevation
 for d = 1 : numDirections
     if hrirGridZenRad(d) ~= pi/2
         % NOTE: This uses the SHT convention of spherical harmonics.
         %       Therefore, the resulting rotation matrices may not be
         %       correct for other conventions!
 
-        % 1) rotate SH represention so that the plane wave impinges from the front
-        % 2) rotate SH represention to impose the inverted desired elevation of incidence
+        % 1) rotate SH representation so that the plane wave impinges from the front
+        % 2) rotate SH representation to impose the inverted desired elevation of incidence
         %    (and convert colatitude to elevation)
-        % 3) rotate SH represention back to the original azimuth
-        euler_matrix  = euler2rotationMatrix(-hrirGridAziRad(d), ...
+        % 3) rotate SH representation back to the original azimuth
+        euler_matrix = euler2rotationMatrix(-hrirGridAziRad(d), ...
             hrirGridZenRad(d) - pi/2, hrirGridAziRad(d), 'zyz');
         sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
         emaIrDir_sh(:, :, d) = emaIrDir_sh(:, :, d) * sh_rot_matrix;
     end
 end; clear d euler_matrix sh_rot_matrix;
-
-% to frequency domain
 pwGridAll = permute(emaIrDir_sh, [2, 3, 1]);
 clear emaIrDir_sh;
 
@@ -118,7 +117,7 @@ HL = fft(hL,nfft);
 HR = fft(hR,nfft);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
-W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
+W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid = pwGridAll(:,:,k);
@@ -142,8 +141,8 @@ for k = 2:numPosFreqs
     end
 end
 
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes 
-% strong a magnitude errors in the rendering results at low frequencies)
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
+% strong magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 

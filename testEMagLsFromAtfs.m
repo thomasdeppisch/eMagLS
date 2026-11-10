@@ -1,6 +1,6 @@
 % This script demonstrates how eMagLS can be used with arbitrary arrays
 % based on measured array transfer functions (ATFs).
-% This example renders signals from a pair of smartglasses.
+% This example renders signals from a pair of smart glasses.
 %
 % For more information, please refer to
 %   T. Deppisch, N. Meyer-Kahlen, and S. V. Amengual Garí,
@@ -82,4 +82,3 @@ binEMls = binEMls ./ max(abs(binEMls(:))) * 0.5;
 
 fprintf('Playing back eMagLS binaural rendering ... \n');
 playblocking(audioplayer(binEMls, sigFs));
-

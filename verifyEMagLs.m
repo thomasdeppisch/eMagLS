@@ -37,7 +37,7 @@ DO_OVERRIDE_REFERENCE = false;
 DO_EXPORT_RENDERING   = true;
 DO_PLAYBACK_RENDERING = true;
 
-% DO_VERIFY_REFERENCE   = true;
+% DO_VERIFY_REFERENCE   = false;
 % DO_OVERRIDE_REFERENCE = true;
 % DO_EXPORT_RENDERING   = false;
 % DO_PLAYBACK_RENDERING = false;
@@ -99,7 +99,7 @@ fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... 
     micRadius, micGridAziRad, micGridZenRad, shOrder, fs, filterLen);
 fprintf('done.\n');
 
-% % e.g. with a different SH basis convention and  implementation
+% % E.g. with a different SH basis convention and implementation
 % shDefinition = 'complex'; % or e.g. 'real'
 % shFunction   = @getSH_AmbiEnc; % from Ambisonic Encoding toolbox
 % fprintf('Computing eMagLS rendering filters ... at N=%d ... with %d samples ... ', ...
@@ -109,7 +109,7 @@ fprintf('done.\n');
 %     applyDiffusenessConst, shDefinition, shFunction);
 % fprintf('done.\n');
 
-% For EMA
+% % For EMA
 % [wEMlsL, wEMlsR] = getEMagLsFiltersEMA(hL, hR, hrirGridAziRad, hrirGridZenRad, ...
 %     micRadius, micGridAziRad, shOrder, fs, filterLen, ...
 %     applyDiffusenessConst, shDefinition, shFunction, @getCH);
@@ -130,7 +130,7 @@ refStr = sprintf('%s_%dsamples_%dchannels_sh%d_%%s_%%s', ...
     refFiles, filterLen, size(micGridAziRad, 1), shOrder);
 refFiles = fullfile(hrirPath, [refStr, '.mat']);
 if strcmp(filesep, '\')
-    % make following sprintfs work on Windows (file paths work regardless)
+    % make following `sprintf` work on Windows (file paths work regardless)
     refFiles = strrep(refFiles, filesep, '/');
 end
 clear hrirPath;
@@ -152,7 +152,7 @@ clear refDiffusenessConst;
 
 if DO_VERIFY_REFERENCE
     if DO_OVERRIDE_REFERENCE
-        warning('Veryfying rendering filters ... skipped.');
+        warning('Verifying rendering filters ... skipped.');
     else
         try
             % TODO: This verification could also check the match of other parameters
@@ -369,14 +369,15 @@ function Y = getSH_AmbiEnc(order, gridAziZenRad, shDefinition) %#ok<DEFNU>
 end
 
 function assertAllClose(x1, x2, norm_tol, spec_tol_dB)
-    if nargin < 4; spec_tol_dB = 1; end
-    if nargin < 3; norm_tol = 1e-13; end
+    if nargin < 4 || isempty(spec_tol_dB); spec_tol_dB = 1; end
+    if nargin < 3 || isempty(norm_tol); norm_tol = 1e-13; end
 
+    fprintf('\n -> ');
     norm_diff = max(abs(x1 - x2), [], 'all') / max(abs([x1, x2]), [], 'all');
     if norm_diff == 0
         fprintf('no sample difference ... ');
     elseif norm_diff < norm_tol
-        fprintf('%.3g max. norm. abs. sample difference ... ', norm_diff);
+        fprintf('%.4g max. norm. abs. sample difference ... ', norm_diff);
     else
         % compute spectral difference
         spec_diff_dB = mag2db(abs(fft(x1) ./ fft(x2)));
@@ -386,10 +387,10 @@ function assertAllClose(x1, x2, norm_tol, spec_tol_dB)
         if spec_diff_dB < 1e-3
             fprintf('sample but no spec. difference ... ');
         elseif spec_diff_dB < spec_tol_dB
-            fprintf('sample and %.3f dB max. spec. difference ... ', spec_diff_dB);
+            fprintf('sample and %.1f dB max. spec. difference ... ', spec_diff_dB);
         else
-            error(['Maximum spectral mismatch of %.3f dB (greater than %.3f dB tolarance) ', ...
-                'and normalized absolute sample mismatch of %.3g (greater than %.3g tolarance).'], ...
+            error(['Maximum spectral mismatch of %.1f dB (greater than %.1f dB tolerance) ', ...
+                'and normalized absolute sample mismatch of %.4g (greater than %.4g tolerance).'], ...
                 spec_diff_dB, spec_tol_dB, norm_diff, norm_tol);
         end
     end

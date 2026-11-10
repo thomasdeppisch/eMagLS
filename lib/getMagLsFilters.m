@@ -27,11 +27,11 @@ function [wMlsL, wMlsR] = getMagLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad
 %
 % Thomas Deppisch, 2023
 
-if nargin < 9; shFunction = @getSH; end
+if nargin < 9 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 8 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 
 % TODO: Implement dealing with HRIRs that are longer than the requested filter
 assert(len >= size(hL, 1), 'HRIR len too short');
@@ -42,8 +42,6 @@ numPosFreqs = length(f);
 f_cut = max(F_CUT_MIN_FREQ, 500 * order); % from N > k
 k_cut = ceil(f_cut / f(2));
 
-numHarmonics = (order+1)^2;
-numDirections = size(hL, 2);
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_pinv = pinv(Y_conj);
 

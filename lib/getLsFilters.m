@@ -24,7 +24,7 @@ function [wLsL, wLsR] = getLsFilters(hL, hR, hrirGridAziRad, hrirGridZenRad, ord
 %
 % Thomas Deppisch, 2023
 
-if nargin < 7; shFunction = @getSH; end
+if nargin < 7 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 6 || isempty(shDefinition); shDefinition = 'real'; end
 
 Y_conj = shFunction(order, [hrirGridAziRad, hrirGridZenRad], shDefinition)';

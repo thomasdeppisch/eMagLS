@@ -48,7 +48,7 @@ grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
 hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(grpDL));
 hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(grpDR));
 
-% transform into frequency domain
+% to frequency domain
 HL = fft(hL, nfft);
 HR = fft(hR, nfft);
 atfs = fft(atfIrs, nfft);
@@ -62,7 +62,7 @@ atfs = fft(atfIrs, nfft);
 [numDirections, idxOfSmallerGrid] = min([size(hL, 2), size(atfIrs,3)]);
 if idxOfSmallerGrid == 1
     % HRTF grid is smaller
-    dirGridAziZenRad = hrirGridAziZenRad;
+    % dirGridAziZenRad = hrirGridAziZenRad;
     dirGridCart = hrirGridCart;
     gridToMatchCart = atfGridCart;
     HLMatched = HL;
@@ -70,7 +70,7 @@ if idxOfSmallerGrid == 1
     atfsMatched = zeros(numPosFreqs, numMics, numDirections);
 else
     % ATF grid is smaller
-    dirGridAziZenRad = atfGridAziZenRad;
+    % dirGridAziZenRad = atfGridAziZenRad;
     dirGridCart = atfGridCart;
     gridToMatchCart = hrirGridCart;
     HLMatched = zeros(numPosFreqs, numDirections);
@@ -96,9 +96,9 @@ end
 disp(['Matching HRTF and ATF grids, average grid deviation: ' num2str(mean(gridPointAngDistDeg)) ' deg'])
 
 W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
-W_MLS_r = zeros(numPosFreqs, numMics, 'like', HL);
+W_MLS_r = zeros(numPosFreqs, numMics, 'like', HR);
 for k = 2:numPosFreqs
-    pwGrid = squeeze(atfsMatched(k, :, :)); %  numMics x numDirections
+    pwGrid = squeeze(atfsMatched(k, :, :)); % numMics x numDirections
     [U, s, V] = svd(pwGrid.', 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
     Y_reg_inv = conj(U) * (s .* V.'); 
@@ -119,13 +119,12 @@ for k = 2:numPosFreqs
     end
 end
 
-
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes
+% manually set the DC bin (use `real()` instead of `abs()`, which causes
 % strong a magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));
 
-% transform into time domain
+% to time domain
 W_MLS_l = [W_MLS_l(1:numPosFreqs, :); flipud(conj(W_MLS_l(2:numPosFreqs-1, :)))];
 W_MLS_r = [W_MLS_r(1:numPosFreqs, :); flipud(conj(W_MLS_r(2:numPosFreqs-1, :)))];
 wMlsL = ifft(W_MLS_l);

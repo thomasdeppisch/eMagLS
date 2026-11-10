@@ -21,7 +21,7 @@ function [wShf, W_Shf] = getMagLsSphericalHeadFilter(micRadius, order, fs, len)
 %
 % Hannes Helmholz, 2023
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `sphModalCoeffs()`
 SIMULATION_MIC_DIR      = 0; % see `sphModalCoeffs()`
 SIMULATION_C            = 343; % speed of sound in m/s
@@ -49,7 +49,7 @@ W_Shf = bn_Hi_df ./ bn_Lo_df;
 % invert spectrum
 W_Shf = 1 ./ W_Shf;
 
-% transform into time domain
+% to time domain
 numPosFreqs = nfft/2+1;
 W_Shf = [W_Shf(1:numPosFreqs, :); flipud(conj(W_Shf(2:numPosFreqs-1, :)))];
 wShf = ifft(W_Shf);

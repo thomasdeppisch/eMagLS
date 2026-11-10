@@ -30,12 +30,12 @@ function [wMlsL, wMlsR] = getEMagLsFiltersEMAinCH(hL, hR, hrirGridAziRad, hrirGr
 %
 % Hannes Helmholz, 2023
 
-if nargin < 12; chFunction = @getCH; end
-if nargin < 11; shFunction = @getSH; end
+if nargin < 12 || isempty(chFunction); chFunction = @getCH; end
+if nargin < 11 || isempty(shFunction); shFunction = @getSH; end
 if nargin < 10 || isempty(shDefinition); shDefinition = 'real'; end
 
-NFFT_MAX_LEN            = 2048; % maxium oversamping length in samples
-F_CUT_MIN_FREQ          = 1e3; % minimum transition freqeuncy in Hz
+NFFT_MAX_LEN            = 2048; % maximum oversampling length in samples
+F_CUT_MIN_FREQ          = 1e3; % minimum transition frequency in Hz
 SIMULATION_WAVE_MODEL   = 'planeWave'; % see `getSMAIRMatrix()`
 SIMULATION_ARRAY_TYPE   = 'rigid'; % see `getSMAIRMatrix()`
 SVD_REGUL_CONST         = 0.01;
@@ -66,7 +66,6 @@ smairMat = getSMAIRMatrix(params);
 simulationOrder = sqrt(size(smairMat, 2)) - 1;
 
 numHarmonics = 2*order + 1;
-numDirections = size(hL, 2);
 Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinition)';
 Y_CH_Mic_pinv = pinv(chFunction(order, micGridAziRad, shDefinition));
 
@@ -88,7 +87,7 @@ HL = fft(hL,nfft);
 HR = fft(hR,nfft);
 
 W_MLS_l = zeros(nfft, numHarmonics, 'like', HL);
-W_MLS_r = zeros(nfft, numHarmonics, 'like', HL);
+W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid_CH = smairMat_CH(:,:,k); % circular harmonics
@@ -112,7 +111,7 @@ for k = 2:numPosFreqs
     end
 end
 
-% mamnually set the DC bin (use `real()` instead of `abs()`, which causes 
+% manually set the DC bin (use `real()` instead of `abs()`, which causes 
 % strong a magnitude errors in the rendering results at low frequencies)
 W_MLS_l(1, :) = real(W_MLS_l(2, :));
 W_MLS_r(1, :) = real(W_MLS_r(2, :));

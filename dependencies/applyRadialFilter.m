@@ -9,7 +9,7 @@ function sigFiltered = applyRadialFilter(inSig, params)
 radFilts = getRadialFilter(params);
 radFilts(isnan(radFilts)) = 0;
 
-% transform into time domain
+% to time domain
 irRadFilter = ifft([radFilts; flipud(conj(radFilts(2:end-1,:)))]);
 
 % make causal
