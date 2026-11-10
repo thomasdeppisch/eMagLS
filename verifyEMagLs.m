@@ -145,7 +145,7 @@ if DO_VERIFY_REFERENCE
         warning('Verifying rendering filters ... skipped.');
     else
         try
-            % TODO: This verification could also check the match of other parameters
+            % TODO: We could also verify the match of other parameters
     
             refFile = sprintf(refFiles, refShDefinition, refLS);
             fprintf('Verifying LS rendering filters against "%s" ... ', refFile);
@@ -339,7 +339,7 @@ fprintf(' ... finished in %.0fh %.0fm %.0fs.\n', ...
 % % This uses a different SH implementation where this function has to match
 % % the signature (parameters and output format) of `getSH()`
 %     % from AKtools toolbox (run AKtoolsStart.m)
-%     % $ svn checkout https://svn.ak.tu-berlin.de/svn/AKtools --username aktools --password ak
+%     % $ git clone https://github.com/f-brinkmann/AKtools.git
 %     Y = AKsh(order, [], rad2deg(gridAziZenRad(:, 1)), ...
 %         rad2deg(gridAziZenRad(:, 2)), shDefinition);
 % end

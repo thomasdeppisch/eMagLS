@@ -40,11 +40,13 @@ kTrans = ceil(fTrans / f(2));
 numMics = size(atfIrs,2);
 
 % zero pad and remove group delay
+% (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
 grpDR = median(grpdelay(sum(hR, 2), 1, f, fs));
-
+% TODO: Implement forward and backward shift equivalent to other methods
 hL = circshift([hL; zeros(nfft - size(hL, 1), size(hL, 2))], -round(grpDL));
 hR = circshift([hR; zeros(nfft - size(hR, 1), size(hR, 2))], -round(grpDR));
 
@@ -99,9 +101,9 @@ W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
 W_MLS_r = zeros(numPosFreqs, numMics, 'like', HR);
 for k = 2:numPosFreqs
     pwGrid = squeeze(atfsMatched(k, :, :)); % numMics x numDirections
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.'); 
+    Y_reg_inv = V * (s .* U');
 
     if k < kTrans % least-squares below cut
         W_MLS_l(k,:) = HLMatched(k,:) * Y_reg_inv;
@@ -137,6 +139,7 @@ wMlsL = circshift(wMlsL, n_shift);
 wMlsR = circshift(wMlsR, n_shift);
 
 % shorten to target length
+% TODO: Implement truncation and windowing equivalent to other methods
 wMlsL = wMlsL(n_shift-filterLen/2+1:n_shift+filterLen/2, :);
 wMlsR = wMlsR(n_shift-filterLen/2+1:n_shift+filterLen/2, :);
 

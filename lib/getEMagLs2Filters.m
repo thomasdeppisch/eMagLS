@@ -69,6 +69,7 @@ Y_conj = shFunction(simulationOrder, [hrirGridAziRad, hrirGridZenRad], shDefinit
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
@@ -84,9 +85,9 @@ W_MLS_l = zeros(numPosFreqs, numMics, 'like', HL);
 W_MLS_r = zeros(numPosFreqs, numMics, 'like', HR);
 for k = 2:numPosFreqs
     pwGrid = smairMat(:,:,k) * Y_conj;
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.');
+    Y_reg_inv = V * (s .* U');
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;

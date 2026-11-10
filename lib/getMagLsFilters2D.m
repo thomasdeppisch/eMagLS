@@ -44,7 +44,7 @@ Y_pinv = pinv(Y_conj);
 % estimate group delay, zero pad and remove group delay with subsample
 % precision (this is an alternative to applying global phase delay later)
 grpD = median(cat(3, grpdelay(sum(hLHor, 2), 1, f, fs), grpdelay(sum(hRHor, 2), 1, f, fs)));
-h = cat(3, hLHor, hRHor);
+h = cat(3, hLHor, hRHor); % combine ears for faster processing
 clear hL hR;
 h(end+1:nfft, :, :) = 0;
 h = applySubsampleDelay(h, -grpD);
@@ -86,6 +86,7 @@ wMls = wMls(n_shift-len/2+1:n_shift+len/2, :, :);
 fade_win = getFadeWindow(len);
 wMls = wMls .* fade_win;
 
+% separate ear filters
 wMlsL = wMls(:, :, 1);
 wMlsR = wMls(:, :, 2);
 

@@ -75,6 +75,7 @@ smairMat_CH = pagemtimes(Y_CH_Mic_pinv, smairMat_CH);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
@@ -91,9 +92,9 @@ W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid_CH = smairMat_CH(:,:,k); % circular harmonics
-    [U, s, V] = svd(pwGrid_CH.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid_CH, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_CH_reg_inv = conj(U) * (s .* V.');
+    Y_CH_reg_inv = V * (s .* U');
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_CH_reg_inv;

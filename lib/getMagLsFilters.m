@@ -48,7 +48,7 @@ Y_pinv = pinv(Y_conj);
 % estimate group delay, zero pad and remove group delay with subsample
 % precision (this is an alternative to applying global phase delay later)
 grpD = median(cat(3, grpdelay(sum(hL, 2), 1, f, fs), grpdelay(sum(hR, 2), 1, f, fs)));
-h = cat(3, hL, hR);
+h = cat(3, hL, hR); % combine ears for faster processing
 clear hL hR;
 h(end+1:nfft, :, :) = 0;
 h = applySubsampleDelay(h, -grpD);
@@ -62,7 +62,7 @@ W_MLS = fft(w_LS,nfft);
 for k = k_cut:numPosFreqs
     phi = angle(pagemtimes(W_MLS(k-1, :, :), Y_conj));
 
-    if k == numPosFreqs % Nyquist bin, is even
+    if k == numPosFreqs % Nyquist bin
         W_MLS(k, :, :) = pagemtimes(real(abs(H(k, :, :)) .* exp(1i * phi)), Y_pinv);
     else
         W_MLS(k, :, :) = pagemtimes(abs(H(k, :, :)) .* exp(1i * phi), Y_pinv);
@@ -90,6 +90,7 @@ wMls = wMls(n_shift-len/2+1:n_shift+len/2, :, :);
 fade_win = getFadeWindow(len);
 wMls = wMls .* fade_win;
 
+% separate ear filters
 wMlsL = wMls(:, :, 1);
 wMlsR = wMls(:, :, 2);
 

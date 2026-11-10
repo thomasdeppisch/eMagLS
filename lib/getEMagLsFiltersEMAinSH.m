@@ -68,7 +68,6 @@ simulationOrder = sqrt(size(emaIrMat, 2)) - 1;
 % directions, but mapped to elevation = 0
 Y_hor_conj = shFunction(simulationOrder, [hrirGridAziRad, ones(size(hrirGridAziRad)) * pi/2], shDefinition)';
 emaIrDir = pagemtimes(emaIrMat, Y_hor_conj);
-clear emaIrMat;
 
 numPosFreqs = length(f);
 emaIrDir = permute(emaIrDir, [3, 1, 2]);
@@ -76,14 +75,19 @@ emaIrDir = permute(emaIrDir, [3, 1, 2]);
 % decompose with EMA functions without radial filters
 numHarmonics = (order+1)^2;
 numDirections = size(hL, 2);
-emaIrDir_sh = zeros(numPosFreqs, numHarmonics, numDirections);
-YCh = chFunction(order, micGridAziRad, shDefinition);
-J = getChToShExpansionMatrix(order,shDefinition);
-for d = 1 : numDirections
-    emaIrDir_sh(:, :, d) = emaIrDir(:, :, d) * pinv(YCh.') * J.';
-end
+% % Original implementation, but the one below executes faster
+% emaIrDir_SH = zeros(numPosFreqs, numHarmonics, numDirections);
+% Y_CH = chFunction(order, micGridAziRad, shDefinition);
+% J = getChToShExpansionMatrix(order,shDefinition);
+% for d = 1 : numDirections
+%     emaIrDir_SH(:, :, d) = emaIrDir(:, :, d) * pinv(Y_CH.') * J.';
+% end
+Y_CH_pinv = pinv(chFunction(order, micGridAziRad, shDefinition).');
+Y_SH_pinv = Y_CH_pinv * getChToShExpansionMatrix(order, shDefinition).';
+emaIrDir_SH = pagemtimes(emaIrDir, Y_SH_pinv);
 
 % rotate the EMA sound field in SHs to impose the HRIR elevation
+sh_rot_matrix = zeros(numHarmonics, numHarmonics, numDirections);
 for d = 1 : numDirections
     if hrirGridZenRad(d) ~= pi/2
         % NOTE: This uses the SHT convention of spherical harmonics.
@@ -96,15 +100,15 @@ for d = 1 : numDirections
         % 3) rotate SH representation back to the original azimuth
         euler_matrix = euler2rotationMatrix(-hrirGridAziRad(d), ...
             hrirGridZenRad(d) - pi/2, hrirGridAziRad(d), 'zyz');
-        sh_rot_matrix = getSHrotMtx(euler_matrix, order, shDefinition);
-        emaIrDir_sh(:, :, d) = emaIrDir_sh(:, :, d) * sh_rot_matrix;
+        sh_rot_matrix(:, :, d) = getSHrotMtx(euler_matrix, order, shDefinition);
     end
-end; clear d euler_matrix sh_rot_matrix;
-pwGridAll = permute(emaIrDir_sh, [2, 3, 1]);
-clear emaIrDir_sh;
+end
+emaIrDir_SH = pagemtimes(emaIrDir_SH, sh_rot_matrix);
+pwGridAll = permute(emaIrDir_SH, [2, 3, 1]);
 
 % zero pad and remove group delay with subsample precision
 % (alternative to applying global phase delay later)
+% TODO: Combine ears for faster processing
 hL(end+1:nfft, :) = 0;
 hR(end+1:nfft, :) = 0;
 grpDL = median(grpdelay(sum(hL, 2), 1, f, fs));
@@ -121,9 +125,9 @@ W_MLS_r = zeros(nfft, numHarmonics, 'like', HR);
 for k = 2:numPosFreqs
     % positive frequencies
     pwGrid = pwGridAll(:,:,k);
-    [U, s, V] = svd(pwGrid.', 'econ', 'vector');
+    [U, s, V] = svd(pwGrid, 'econ', 'vector');
     s = 1 ./ max(s, SVD_REGUL_CONST * max(s)); % regularize
-    Y_reg_inv = conj(U) * (s .* V.');
+    Y_reg_inv = V * (s .* U');
 
     if k < k_cut % least-squares below cut
         W_MLS_l(k,:) = HL(k,:) * Y_reg_inv;
